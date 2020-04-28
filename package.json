@@ -1,0 +1,25 @@
+{
+  "name": "rbank-js",
+  "version": "0.0.1",
+  "description": "RBank DeFi Library",
+  "main": "./packages/rbank/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rsksmart/rbank-js.git"
+  },
+  "keywords": [
+    "rbank",
+    "defi",
+    "javascript",
+    "library"
+  ],
+  "author": "RSK Innovation Labs",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/rsksmart/rbank-js/issues"
+  },
+  "homepage": "https://github.com/rsksmart/rbank-js#readme"
+}
