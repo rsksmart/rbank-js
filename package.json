@@ -2,7 +2,9 @@
   "name": "rbank-js",
   "version": "0.0.1",
   "description": "RBank DeFi Library",
-  "main": "./packages/rbank/index.js",
+  "main": "dist/rbank/index.cjs.js",
+  "module": "dist/rbank/index.esm.js",
+  "browser": "dist/rbank/index.umd.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -21,5 +23,17 @@
   "bugs": {
     "url": "https://github.com/rsksmart/rbank-js/issues"
   },
-  "homepage": "https://github.com/rsksmart/rbank-js#readme"
+  "homepage": "https://github.com/rsksmart/rbank-js#readme",
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.5",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "lerna": "^3.20.2",
+    "mocha": "^7.1.2",
+    "rollup": "^2.7.3",
+    "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-node-resolve": "^5.2.0"
+  }
 }
