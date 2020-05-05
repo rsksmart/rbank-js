@@ -6,7 +6,7 @@
   "module": "dist/rbank/index.esm.js",
   "browser": "dist/rbank/index.umd.js",
   "scripts": {
-    "test": "nyc --reporter=text mocha --timeout 30000 --recursive @babel/polyfill --require @babel/register --exit"
+    "test": "lerna run test"
   },
   "repository": {
     "type": "git",
