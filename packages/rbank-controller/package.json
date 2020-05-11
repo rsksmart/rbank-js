@@ -24,5 +24,8 @@
   },
   "bugs": {
     "url": "https://github.com/rsksmart/rbank-js/issues"
+  },
+  "dependencies": {
+    "web3": "^1.2.7"
   }
 }

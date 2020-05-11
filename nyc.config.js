@@ -5,6 +5,4 @@ module.exports = {
   requires: [
     '@babel/register',
   ],
-  "sourceMap": false,
-  "instrument": false,
 };

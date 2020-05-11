@@ -1,6 +1,6 @@
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import Controller from '../src/controller.js';
+import Controller from '../src/controller';
 
 chai.use(chaiAsPromised);
 
