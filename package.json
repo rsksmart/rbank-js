@@ -6,7 +6,10 @@
   "module": "dist/rbank/index.esm.js",
   "browser": "dist/rbank/index.umd.js",
   "scripts": {
-    "test": "lerna run test"
+    "build": "lerna run build",
+    "test": "npm run build && lerna exec -- npm test",
+    "compile": "cd dependencies/DeFiProt/ && truffle compile",
+    "deploy:controller": "npm run compile && cp dependencies/DeFiProt/build/contracts/Controller.json packages/rbank-controller/src"
   },
   "repository": {
     "type": "git",
@@ -37,17 +40,7 @@
     "rollup": "^2.7.3",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-node-resolve": "^5.2.0"
-  },
-  "nyc": {
-    "require": [
-      "@babel/register"
-    ],
-    "reporter": [
-      "lcov",
-      "text"
-    ],
-    "sourceMap": false,
-    "instrument": false
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "sinon": "^9.0.2"
   }
 }

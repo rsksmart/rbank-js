@@ -1,0 +1,31 @@
+{
+  "name": "@rsksmart/rbank-controller",
+  "version": "0.0.0",
+  "description": "Controller handler for DeFi solution",
+  "keywords": [
+    "DeFi",
+    "Controller"
+  ],
+  "author": "Mesi Rendon <amrendonsa@unal.edu.co>",
+  "homepage": "https://github.com/rsksmart/rbank-js/tree/master/packages/rbank-controller#readme",
+  "license": "LGPL-3.0",
+  "main": "dist/@rsksmart/rbank-controller.cjs.js",
+  "module": "dist/@rsksmart/rbank-controller.esm.js",
+  "browser": "dist/@rsksmart/rbank-controller.umd.js",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rsksmart/rbank-js.git"
+  },
+  "scripts": {
+    "test": "nyc mocha --recursive --exit"
+  },
+  "bugs": {
+    "url": "https://github.com/rsksmart/rbank-js/issues"
+  },
+  "dependencies": {
+    "web3": "^1.2.7"
+  }
+}
