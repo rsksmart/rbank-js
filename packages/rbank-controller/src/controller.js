@@ -13,12 +13,17 @@ const send = (signature) => new Promise((resolve, reject) => {
 });
 
 /**
- * Controller handler
+ * A blockchain transaction response.
+ * @typedef {Object} TXResult
+ */
+
+/**
+ * Controller handler.
  */
 export default class Controller {
   /**
-   * Constructor
-   * @param {string} address On chain `Controller` deployed address
+   * Constructor.
+   * @param {string} address On chain `Controller` deployed address.
    * @return {Error}
    */
   constructor(address = '') {
@@ -28,10 +33,18 @@ export default class Controller {
     this._address = address;
   }
 
+  /**
+   * Controller address.
+   * @return {string} this controller instance address.
+   */
   get address() {
     return this._address;
   }
 
+  /**
+   * Returns an eventual value for the collateral factor.
+   * @return {Promise<number>} eventual collateral factor.
+   */
   get eventualCollateralFactor() {
     return new Promise((resolve, reject) => {
       this._instance.methods.collateralFactor()
@@ -42,6 +55,10 @@ export default class Controller {
     });
   }
 
+  /**
+   * Returns an eventual value for the liquidation factor.
+   * @return {Promise<number>} eventual liquidation factor.
+   */
   get eventualLiquidationFactor() {
     return new Promise((resolve, reject) => {
       this._instance.methods.liquidationFactor()
@@ -52,6 +69,11 @@ export default class Controller {
     });
   }
 
+  /**
+   * Returns an eventual value for the size of registered markets
+   * within this controller.
+   * @return {Promise<number>} eventual market list size.
+   */
   get eventualMarketListSize() {
     return new Promise((resolve, reject) => {
       this._instance.methods.marketListSize()
@@ -62,6 +84,11 @@ export default class Controller {
     });
   }
 
+  /**
+   * Sets the collateral factor for this controller.
+   * @param {number} collateralFactor
+   * @return {Promise<TXResult>}
+   */
   setCollateralFactor(collateralFactor) {
     return new Promise((resolve, reject) => {
       send(this._instance.methods.setCollateralFactor(collateralFactor))
@@ -70,6 +97,11 @@ export default class Controller {
     });
   }
 
+  /**
+   * Sets the liquidation factor for this controller.
+   * @param {number} liquidationFactor
+   * @return {Promise<TXResult>}
+   */
   setLiquidationFactor(liquidationFactor) {
     return new Promise((resolve, reject) => {
       send(this._instance.methods.setLiquidationFactor(liquidationFactor))
@@ -78,6 +110,11 @@ export default class Controller {
     });
   }
 
+  /**
+   * Adds a new market into this controller. Fails if the market was already added.
+   * @param {string} marketAddress address of an existing market on chain.
+   * @return {Promise<TXResult>}
+   */
   addMarket(marketAddress) {
     return new Promise((resolve, reject) => {
       send(this._instance.methods.addMarket(marketAddress))
@@ -86,17 +123,28 @@ export default class Controller {
     });
   }
 
-  setMarketPrice(market, price) {
+  /**
+   * Sets the price in USD for a given market
+   * @param {string} marketAddress address of the registered market in this controller.
+   * @param {number} marketPrice the new price for the given market.
+   * @return {Promise<TXResult>}
+   */
+  setMarketPrice(marketAddress, marketPrice) {
     return new Promise((resolve, reject) => {
-      send(this._instance.methods.setPrice(market, price))
+      send(this._instance.methods.setPrice(marketAddress, marketPrice))
         .then(resolve)
         .catch(reject);
     });
   }
 
-  eventualMarketPrice(market) {
+  /**
+   * Returns the current price for a given market.
+   * @param marketAddress address of the registered market in this controller.
+   * @return {Promise<number>} eventual price for a given market in this controller.
+   */
+  eventualMarketPrice(marketAddress) {
     return new Promise((resolve, reject) => {
-      this._instance.methods.prices(market)
+      this._instance.methods.prices(marketAddress)
         .call()
         .then(price => Number(price))
         .then(resolve)
@@ -104,6 +152,18 @@ export default class Controller {
     });
   }
 
+  /**
+   * Account values
+   * @typedef {Object} AccountValues
+   * @property {number} supplyValue
+   * @property {number} borrowValue
+   */
+
+  /**
+   * Returns the current supplied and borrowed values for a given account.
+   * @param {string} account
+   * @return {Promise<AccountValues>}
+   */
   getAccountValues(account) {
     return new Promise((resolve, reject) => {
       this._instance.methods.getAccountValues(account)
@@ -117,6 +177,11 @@ export default class Controller {
     });
   }
 
+  /**
+   * Returns the liquidity for a given account according to its current state in all the markets
+   * @param {string} account
+   * @return {Promise<number>} eventual liquidity
+   */
   getAccountLiquidity(account) {
     return new Promise((resolve, reject) => {
       this._instance.methods.getAccountLiquidity(account)
@@ -127,6 +192,10 @@ export default class Controller {
     });
   }
 
+  /**
+   * Deploys a new controller on chain
+   * @return {Promise<string>} the address of the created controller smart contract
+   */
   static create() {
     return new Promise((resolve, reject) => {
       const controller = new web3.eth.Contract(ControllerContract.abi);
