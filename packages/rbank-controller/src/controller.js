@@ -25,6 +25,11 @@ export default class Controller {
     if (!address.match(/0x[a-fA-F0-9]{40}/))
       return new Error('Missing address');
     this._instance = new web3.eth.Contract(ControllerContract.abi, address);
+    this._address = address;
+  }
+
+  get address() {
+    return this._address;
   }
 
   get eventualCollateralFactor() {
@@ -76,6 +81,47 @@ export default class Controller {
   addMarket(marketAddress) {
     return new Promise((resolve, reject) => {
       send(this._instance.methods.addMarket(marketAddress))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  setMarketPrice(market, price) {
+    return new Promise((resolve, reject) => {
+      send(this._instance.methods.setPrice(market, price))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  eventualMarketPrice(market) {
+    return new Promise((resolve, reject) => {
+      this._instance.methods.prices(market)
+        .call()
+        .then(price => Number(price))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  getAccountValues(account) {
+    return new Promise((resolve, reject) => {
+      this._instance.methods.getAccountValues(account)
+        .call()
+        .then(({ supplyValue, borrowValue }) => ({
+          supplyValue: Number(supplyValue),
+          borrowValue: Number(borrowValue),
+        }))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  getAccountLiquidity(account) {
+    return new Promise((resolve, reject) => {
+      this._instance.methods.getAccountLiquidity(account)
+        .call()
+        .then(liquidity => Number(liquidity))
         .then(resolve)
         .catch(reject);
     });
