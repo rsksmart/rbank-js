@@ -1,17 +1,16 @@
 {
-  "name": "@rsksmart/rbank-utils",
+  "name": "@rsksmart/rbank-core",
   "version": "0.0.1",
-  "description": "Rbank core utils",
+  "description": "Rbank core",
   "keywords": [
-    "rbank",
-    "utils"
+    "Rbank"
   ],
   "author": "Mesi Rendon <amrendonsa@unal.edu.co>",
-  "homepage": "https://github.com/rsksmart/rbank-js/tree/master/packages/rbank-utils#readme",
+  "homepage": "https://github.com/rsksmart/rbank-js/tree/master/packages/rbank-core#readme",
   "license": "LGPL-3.0",
-  "main": "dist/@rsksmart/rbank-utils.cjs.js",
-  "module": "dist/@rsksmart/rbank-utils.esm.js",
-  "browser": "dist/@rsksmart/rbank-utils.umd.js",
+  "main": "dist/@rsksmart/rbank.cjs.js",
+  "module": "dist/@rsksmart/rbank.esm.js",
+  "browser": "dist/@rsksmart/rbank.umd.js",
   "files": [
     "dist"
   ],
@@ -26,5 +25,8 @@
   },
   "bugs": {
     "url": "https://github.com/rsksmart/rbank-js/issues"
+  },
+  "dependencies": {
+    "@rsksmart/rbank-controller": "^0.0.1"
   }
 }

@@ -10,9 +10,10 @@
     "bootstrap": "lerna bootstrap",
     "bootstrap-yarn": "lerna bootstrap --npm-client yarn  -- --no-lockfile",
     "build": "lerna run build",
-    "test": "npm run build && lerna exec -- npm test",
+    "clean": "lerna clean",
     "compile": "cd dependencies/DeFiProt/ && truffle compile",
-    "deploy:controller": "npm run compile && cp dependencies/DeFiProt/build/contracts/Controller.json packages/rbank-controller/src"
+    "deploy:controller": "npm run compile && cp dependencies/DeFiProt/build/contracts/Controller.json packages/rbank-controller/src",
+    "test": "npm run build && lerna exec -- npm test"
   },
   "repository": {
     "type": "git",
@@ -51,5 +52,8 @@
     "rollup-plugin-auto-external": "^2.0.0",
     "rollup-plugin-cleanup": "^3.1.1",
     "sinon": "^9.0.2"
+  },
+  "dependencies": {
+    "web3": "^1.2.8"
   }
 }

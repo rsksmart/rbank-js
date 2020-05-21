@@ -1,17 +1,17 @@
 {
-  "name": "@rsksmart/rbank-utils",
+  "name": "@rsksmart/rbank-market",
   "version": "0.0.1",
-  "description": "Rbank core utils",
+  "description": "Rbank market handler",
   "keywords": [
-    "rbank",
-    "utils"
+    "Rbank",
+    "Market"
   ],
   "author": "Mesi Rendon <amrendonsa@unal.edu.co>",
-  "homepage": "https://github.com/rsksmart/rbank-js/tree/master/packages/rbank-utils#readme",
+  "homepage": "https://github.com/rsksmart/rbank-js/tree/master/packages/rbank-market#readme",
   "license": "LGPL-3.0",
-  "main": "dist/@rsksmart/rbank-utils.cjs.js",
-  "module": "dist/@rsksmart/rbank-utils.esm.js",
-  "browser": "dist/@rsksmart/rbank-utils.umd.js",
+  "main": "dist/@rsksmart/rbank-market.cjs.js",
+  "module": "dist/@rsksmart/rbank-market.esm.js",
+  "browser": "dist/@rsksmart/rbank-market.umd.js",
   "files": [
     "dist"
   ],
@@ -26,5 +26,8 @@
   },
   "bugs": {
     "url": "https://github.com/rsksmart/rbank-js/issues"
+  },
+  "dependencies": {
+    "@rsksmart/rbank-utils": "^0.0.1"
   }
 }
