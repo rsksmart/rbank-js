@@ -3,7 +3,7 @@ import chaiAsPromised from 'chai-as-promised';
 import Web3 from 'web3';
 import FaucetTokenContract from '../../../dependencies/DeFiProt/build/contracts/FaucetToken.json';
 import MarketContract from '../../../dependencies/DeFiProt/build/contracts/Market.json';
-import Controller from '../src/controller';
+import Controller from '../src';
 
 const web3 = new Web3(Web3.givenProvider || 'ws://localhost:8545');
 

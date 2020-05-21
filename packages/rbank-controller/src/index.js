@@ -1,16 +1,6 @@
 import ControllerContract from './Controller.json';
-import Web3 from 'web3';
 
-const web3 = new Web3(Web3.givenProvider || 'ws://localhost:8545');
-
-const send = (signature) => new Promise((resolve, reject) => {
-  web3.eth.getAccounts()
-    .then(([from]) => [from, signature.estimateGas({ from })])
-    .then(promises => Promise.all(promises))
-    .then(([from, gas]) => signature.send({ from, gas }))
-    .then(resolve)
-    .catch(reject);
-});
+import { send, web3 } from '@rsksmart/rbank-utils';
 
 /**
  * A blockchain transaction response.
@@ -20,7 +10,7 @@ const send = (signature) => new Promise((resolve, reject) => {
 /**
  * Controller handler.
  */
-export default class Controller {
+export default class Index {
   /**
    * Constructor.
    * @param {string} address On chain `Controller` deployed address.

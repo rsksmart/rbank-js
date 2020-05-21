@@ -1,6 +1,6 @@
 {
   "name": "@rsksmart/rbank-controller",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Controller handler for DeFi solution",
   "keywords": [
     "DeFi",
@@ -20,12 +20,15 @@
     "url": "git+https://github.com/rsksmart/rbank-js.git"
   },
   "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
     "test": "nyc mocha --recursive --exit"
   },
   "bugs": {
     "url": "https://github.com/rsksmart/rbank-js/issues"
   },
   "dependencies": {
+    "@rsksmart/rbank-utils": "^0.0.1",
     "web3": "^1.2.7"
   }
 }

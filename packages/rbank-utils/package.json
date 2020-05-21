@@ -1,6 +1,6 @@
 {
   "name": "@rsksmart/rbank-utils",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Rbank core utils",
   "keywords": [
     "rbank",
@@ -20,6 +20,8 @@
     "url": "git+https://github.com/rsksmart/rbank-js.git"
   },
   "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
     "test": "nyc mocha --recursive --exit"
   },
   "bugs": {
