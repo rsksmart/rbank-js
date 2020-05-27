@@ -10,9 +10,14 @@
     "bootstrap": "lerna bootstrap",
     "bootstrap-yarn": "lerna bootstrap --npm-client yarn  -- --no-lockfile",
     "build": "lerna run build",
-    "clean": "lerna clean",
+    "clean": "npm run clean:utils && npm run clean:controller && npm run clean:market && npm run clean:core && lerna clean",
+    "clean:utils": "cd packages/rbank-utils/ && rm -rf node_modules dist",
+    "clean:controller": "cd packages/rbank-controller/ && rm -rf node_modules dist",
+    "clean:market": "cd packages/rbank-market/ && rm -rf node_modules dist",
+    "clean:core": "cd packages/rbank-core/ && rm -rf node_modules dist",
     "compile": "cd dependencies/DeFiProt/ && truffle compile",
     "deploy:controller": "npm run compile && cp dependencies/DeFiProt/build/contracts/Controller.json packages/rbank-controller/src",
+    "deploy:market": "npm run compile && rm -rf packages/rbank-market/src/*.json && cp dependencies/DeFiProt/build/contracts/Market.json dependencies/DeFiProt/build/contracts/FaucetToken.json packages/rbank-market/src",
     "test": "npm run build && lerna exec -- npm test"
   },
   "repository": {
