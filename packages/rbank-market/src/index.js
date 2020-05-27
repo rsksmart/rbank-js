@@ -36,6 +36,16 @@ export default class Market {
     });
   }
 
+  get balance() {
+    return new Promise((resolve, reject) => {
+      this._instance.methods.getCash()
+        .call()
+        .then(balance => Number(balance))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
   setControllerAddress(controllerAddress) {
     return new Promise((resolve, reject) => {
       send(this._instance.methods.setController(controllerAddress))
@@ -49,6 +59,32 @@ export default class Market {
       this._token
         .then(token => token.approve(this._address, amount, from))
         .then(() => send(this._instance.methods.supply(amount), from))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  borrow(amount, from = '') {
+    return new Promise((resolve, reject) => {
+      send(this._instance.methods.borrow(amount), from)
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  supplyOf(from = '') {
+    return new Promise((resolve, reject) => {
+      web3.eth.getAccounts()
+        .then(([account]) => this._instance.methods.supplyOf(from || account).call())
+        .then(balance => Number(balance))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  payBorrow(amount, from = '') {
+    return new Promise((resolve, reject) => {
+      send(this._instance.methods.payBorrow(amount), from)
         .then(resolve)
         .catch(reject);
     });
