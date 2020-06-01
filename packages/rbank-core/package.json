@@ -27,6 +27,7 @@
     "url": "https://github.com/rsksmart/rbank-js/issues"
   },
   "dependencies": {
-    "@rsksmart/rbank-controller": "^0.0.1"
+    "@rsksmart/rbank-controller": "^0.0.1",
+    "@rsksmart/rbank-market": "^0.0.1"
   }
 }
