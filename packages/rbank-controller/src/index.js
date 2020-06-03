@@ -168,7 +168,7 @@ export default class Index {
   }
 
   /**
-   * Returns the liquidity for a given account according to its current state in all the markets
+   * Returns the liquidity for a given account according to its current state in all the markets.
    * @param {string} account
    * @return {Promise<number>} eventual liquidity
    */
@@ -177,6 +177,20 @@ export default class Index {
       this._instance.methods.getAccountLiquidity(account)
         .call()
         .then(liquidity => Number(liquidity))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns the address of the market registered at certain index.
+   * @param {number} marketIdx Market index position
+   * @return {Promise<string>}
+   */
+  getEventualMarketAddress(marketIdx) {
+    return new Promise((resolve, reject) => {
+      this._instance.methods.marketList(marketIdx)
+        .call()
         .then(resolve)
         .catch(reject);
     });

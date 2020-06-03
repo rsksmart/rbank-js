@@ -100,6 +100,20 @@ describe('Controller handler', () => {
           expect(marketListSize).to.eq(2);
         });
     });
+    it('should tell how many markets are registered', () => {
+      return controller.addMarket(market1._address)
+        .then(() => controller.eventualMarketListSize)
+        .then(size => {
+          expect(size).to.eq(1);
+        });
+    });
+    it('should retrieve the address of a registered market upon idx selection', () => {
+      return controller.addMarket(market1._address)
+        .then(() => controller.getEventualMarketAddress(0))
+        .then(marketAddress => {
+          expect(marketAddress).to.eq(market1._address);
+        });
+    });
   });
   context('DeFi Operations', () => {
     let owner, acc1, acc2, acc3;
