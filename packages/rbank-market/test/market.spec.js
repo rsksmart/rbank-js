@@ -123,7 +123,7 @@ describe('Market handler', () => {
       await market2PriceSignature.send({ from: owner, gas: market2PriceGas });
       await market2.setControllerAddress(controller._address);
     });
-    it('should throws an error if there is not enough balance to supply into a market', () => {
+    it('should throws an error if there is not enough eventualBalance to supply into a market', () => {
       return expect(market1.supply(250, user2)).to.be.eventually.rejected;
     });
     it('should allow the current and funded user to supply into the market', () => {
@@ -141,7 +141,7 @@ describe('Market handler', () => {
           expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
         });
     });
-    it('should show zero as balance for an account that has not supplied tokens yet', () => {
+    it('should show zero as eventualBalance for an account that has not supplied tokens yet', () => {
       return market1.supplyOf(user2)
         .then(balance => {
           expect(balance).to.eq(0);
@@ -170,9 +170,9 @@ describe('Market handler', () => {
           expect(market1.borrow(100, user2)).to.be.eventually.rejected;
         });
     });
-    it('should return the balance of a supplied market', () => {
+    it('should return the eventualBalance of a supplied market', () => {
       return market1.supply(250, user1)
-        .then(() => market1.balance)
+        .then(() => market1.eventualBalance)
         .then(balance => {
           expect(balance).to.eq(250);
         });
@@ -183,7 +183,7 @@ describe('Market handler', () => {
         .then(() => market1.borrow(20, user2))
         .then(result => {
           expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
-          return market1.balance;
+          return market1.eventualBalance;
         })
         .then(balance => {
           expect(balance).to.eq(230);
@@ -194,6 +194,6 @@ describe('Market handler', () => {
     it('should throw an error on redeem if there is not enough supplied amount from the user');
     it('should allow anyone to get the updatedSupplyOf value of any account');
     it('should allow anyone to get the updatedBorrowedBy value of any account');
-    it('should allow anyone to get the current Market balance in its token terms');
+    it('should allow anyone to get the current Market eventualBalance in its token terms');
   });
 });

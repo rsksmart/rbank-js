@@ -12,7 +12,7 @@ import { send, web3 } from '@rsksmart/rbank-utils';
  */
 export default class Index {
   /**
-   * Constructor.
+   * Controller handler constructor.
    * @param {string} address On chain `Controller` deployed address.
    * @return {Error}
    */

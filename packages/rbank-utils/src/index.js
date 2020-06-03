@@ -23,7 +23,7 @@ const internalSend = (signature, from) => new Promise((resolve, reject) => {
  * Will send a transaction to the smart contract and execute its method. Note this can alter
  * the smart contract state.
  * @param {Object} signature
- * @param {string} from Optional, if specified, the transaction will be executed with from this address
+ * @param {string=} from if specified the transaction will be executed with from this address
  * @return {Promise<TXResult>}
  */
 export const send = (signature, from = '') => new Promise((resolve, reject) => {
