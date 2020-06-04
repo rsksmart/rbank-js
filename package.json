@@ -1,10 +1,8 @@
 {
-  "name": "rbank-js",
+  "name": "@rsksmart/rbank.js",
   "version": "0.0.1",
   "description": "RBank DeFi Library",
-  "main": "dist/rbank/index.cjs.js",
-  "module": "dist/rbank/index.esm.js",
-  "browser": "dist/rbank/index.umd.js",
+  "main": "packages/rbank/src/index.js",
   "scripts": {
     "bootstrap-local": "lerna bootstrap --force-local",
     "bootstrap": "lerna bootstrap",
@@ -14,7 +12,7 @@
     "clean:utils": "cd packages/rbank-utils/ && rm -rf node_modules dist",
     "clean:controller": "cd packages/rbank-controller/ && rm -rf node_modules dist",
     "clean:market": "cd packages/rbank-market/ && rm -rf node_modules dist",
-    "clean:core": "cd packages/rbank-core/ && rm -rf node_modules dist",
+    "clean:core": "cd packages/rbank/ && rm -rf node_modules dist",
     "compile": "cd dependencies/DeFiProt/ && truffle compile",
     "deploy:controller": "npm run compile && cp dependencies/DeFiProt/build/contracts/Controller.json packages/rbank-controller/src",
     "deploy:market": "npm run compile && rm -rf packages/rbank-market/src/*.json && cp dependencies/DeFiProt/build/contracts/Market.json dependencies/DeFiProt/build/contracts/FaucetToken.json packages/rbank-market/src",
