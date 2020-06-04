@@ -115,10 +115,10 @@ describe('Market handler', () => {
       await token1.methods.allocateTo(user1, 500).send({ from: user1 });
       await token2.methods.allocateTo(user2, 500).send({ from: user2 });
 
-      const addMarket2Signature = controller.methods.addMarket(market2._address);
+      const addMarket2Signature = controller.methods.addMarket(market2.instanceAddress);
       const addMarket2Gas = await addMarket2Signature.estimateGas({ from: owner });
       await addMarket2Signature.send({ from: owner, gas: addMarket2Gas });
-      const market2PriceSignature = controller.methods.setPrice(market2._address, 10);
+      const market2PriceSignature = controller.methods.setPrice(market2.instanceAddress, 10);
       const market2PriceGas = await market2PriceSignature.estimateGas({ from: owner });
       await market2PriceSignature.send({ from: owner, gas: market2PriceGas });
       await market2.setControllerAddress(controller._address);

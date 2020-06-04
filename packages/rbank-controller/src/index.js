@@ -1,6 +1,6 @@
+import { send, web3 } from '@rsksmart/rbank-utils';
 import ControllerContract from './Controller.json';
 
-import { send, web3 } from '@rsksmart/rbank-utils';
 
 /**
  * A blockchain transaction response.
@@ -17,10 +17,9 @@ export default class Index {
    * @return {Error}
    */
   constructor(address = '') {
-    if (!address.match(/0x[a-fA-F0-9]{40}/))
-      return new Error('Missing address');
-    this._instance = new web3.eth.Contract(ControllerContract.abi, address);
-    this._address = address;
+    if (!address.match(/0x[a-fA-F0-9]{40}/)) return new Error('Missing address');
+    this.instance = new web3.eth.Contract(ControllerContract.abi, address);
+    this.instanceAddress = address;
   }
 
   /**
@@ -28,7 +27,7 @@ export default class Index {
    * @return {string} this controller instance address.
    */
   get address() {
-    return this._address;
+    return this.instanceAddress;
   }
 
   /**
@@ -37,9 +36,9 @@ export default class Index {
    */
   get eventualCollateralFactor() {
     return new Promise((resolve, reject) => {
-      this._instance.methods.collateralFactor()
+      this.instance.methods.collateralFactor()
         .call()
-        .then(collateralFactor => Number(collateralFactor))
+        .then((collateralFactor) => Number(collateralFactor))
         .then(resolve)
         .catch(reject);
     });
@@ -51,9 +50,9 @@ export default class Index {
    */
   get eventualLiquidationFactor() {
     return new Promise((resolve, reject) => {
-      this._instance.methods.liquidationFactor()
+      this.instance.methods.liquidationFactor()
         .call()
-        .then(liquidationFactor => Number(liquidationFactor))
+        .then((liquidationFactor) => Number(liquidationFactor))
         .then(resolve)
         .catch(reject);
     });
@@ -66,9 +65,9 @@ export default class Index {
    */
   get eventualMarketListSize() {
     return new Promise((resolve, reject) => {
-      this._instance.methods.marketListSize()
+      this.instance.methods.marketListSize()
         .call()
-        .then(marketListSize => Number(marketListSize))
+        .then((marketListSize) => Number(marketListSize))
         .then(resolve)
         .catch(reject);
     });
@@ -81,7 +80,7 @@ export default class Index {
    */
   setCollateralFactor(collateralFactor) {
     return new Promise((resolve, reject) => {
-      send(this._instance.methods.setCollateralFactor(collateralFactor))
+      send(this.instance.methods.setCollateralFactor(collateralFactor))
         .then(resolve)
         .catch(reject);
     });
@@ -94,7 +93,7 @@ export default class Index {
    */
   setLiquidationFactor(liquidationFactor) {
     return new Promise((resolve, reject) => {
-      send(this._instance.methods.setLiquidationFactor(liquidationFactor))
+      send(this.instance.methods.setLiquidationFactor(liquidationFactor))
         .then(resolve)
         .catch(reject);
     });
@@ -107,7 +106,7 @@ export default class Index {
    */
   addMarket(marketAddress) {
     return new Promise((resolve, reject) => {
-      send(this._instance.methods.addMarket(marketAddress))
+      send(this.instance.methods.addMarket(marketAddress))
         .then(resolve)
         .catch(reject);
     });
@@ -121,7 +120,7 @@ export default class Index {
    */
   setMarketPrice(marketAddress, marketPrice) {
     return new Promise((resolve, reject) => {
-      send(this._instance.methods.setPrice(marketAddress, marketPrice))
+      send(this.instance.methods.setPrice(marketAddress, marketPrice))
         .then(resolve)
         .catch(reject);
     });
@@ -134,9 +133,9 @@ export default class Index {
    */
   eventualMarketPrice(marketAddress) {
     return new Promise((resolve, reject) => {
-      this._instance.methods.prices(marketAddress)
+      this.instance.methods.prices(marketAddress)
         .call()
-        .then(price => Number(price))
+        .then((price) => Number(price))
         .then(resolve)
         .catch(reject);
     });
@@ -156,7 +155,7 @@ export default class Index {
    */
   getAccountValues(account) {
     return new Promise((resolve, reject) => {
-      this._instance.methods.getAccountValues(account)
+      this.instance.methods.getAccountValues(account)
         .call()
         .then(({ supplyValue, borrowValue }) => ({
           supplyValue: Number(supplyValue),
@@ -174,9 +173,9 @@ export default class Index {
    */
   getAccountLiquidity(account) {
     return new Promise((resolve, reject) => {
-      this._instance.methods.getAccountLiquidity(account)
+      this.instance.methods.getAccountLiquidity(account)
         .call()
-        .then(liquidity => Number(liquidity))
+        .then((liquidity) => Number(liquidity))
         .then(resolve)
         .catch(reject);
     });
@@ -189,7 +188,7 @@ export default class Index {
    */
   getEventualMarketAddress(marketIdx) {
     return new Promise((resolve, reject) => {
-      this._instance.methods.marketList(marketIdx)
+      this.instance.methods.marketList(marketIdx)
         .call()
         .then(resolve)
         .catch(reject);
@@ -206,9 +205,10 @@ export default class Index {
       const deploy = controller.deploy({ data: ControllerContract.bytecode });
       web3.eth.getAccounts()
         .then(([from]) => [from, deploy.estimateGas({ from })])
-        .then(result => Promise.all(result))
+        .then((result) => Promise.all(result))
         .then(([from, gas]) => deploy.send({ from, gas }))
-        .then(instance => instance._address)
+        // eslint-disable-next-line no-underscore-dangle
+        .then((instance) => instance._address)
         .then(resolve)
         .catch(reject);
     });

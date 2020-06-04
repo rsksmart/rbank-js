@@ -1,6 +1,6 @@
+import { send, web3 } from '@rsksmart/rbank-utils';
 import MarketContract from './Market.json';
 import Token from './token';
-import { send, web3 } from '@rsksmart/rbank-utils';
 
 /**
  * A blockchain transaction response.
@@ -17,13 +17,12 @@ export default class Market {
    * @return {Error}
    */
   constructor(address = '') {
-    if (!address.match(/0x[a-fA-F0-9]{40}/))
-      return new Error('Missing address');
-    this._instance = new web3.eth.Contract(MarketContract.abi, address);
-    this._address = address;
-    this._token = this._instance.methods.token()
+    if (!address.match(/0x[a-fA-F0-9]{40}/)) return new Error('Missing address');
+    this.instance = new web3.eth.Contract(MarketContract.abi, address);
+    this.instanceAddress = address;
+    this.token = this.instance.methods.token()
       .call()
-      .then(tokenAddress => new Token(tokenAddress));
+      .then((tokenAddress) => new Token(tokenAddress));
   }
 
   /**
@@ -31,7 +30,7 @@ export default class Market {
    * @return {string} this market instance address.
    */
   get address() {
-    return this._address;
+    return this.instanceAddress;
   }
 
   /**
@@ -40,7 +39,7 @@ export default class Market {
    */
   get eventualController() {
     return new Promise((resolve, reject) => {
-      this._instance.methods.controller()
+      this.instance.methods.controller()
         .call()
         .then(resolve)
         .catch(reject);
@@ -53,9 +52,9 @@ export default class Market {
    */
   get eventualBaseBorrowRate() {
     return new Promise((resolve, reject) => {
-      this._instance.methods.baseBorrowRate()
+      this.instance.methods.baseBorrowRate()
         .call()
-        .then(baseBorrowRate => Number(baseBorrowRate))
+        .then((baseBorrowRate) => Number(baseBorrowRate))
         .then(resolve)
         .catch(reject);
     });
@@ -67,9 +66,9 @@ export default class Market {
    */
   get eventualBalance() {
     return new Promise((resolve, reject) => {
-      this._instance.methods.getCash()
+      this.instance.methods.getCash()
         .call()
-        .then(balance => Number(balance))
+        .then((balance) => Number(balance))
         .then(resolve)
         .catch(reject);
     });
@@ -82,7 +81,7 @@ export default class Market {
    */
   setControllerAddress(controllerAddress) {
     return new Promise((resolve, reject) => {
-      send(this._instance.methods.setController(controllerAddress))
+      send(this.instance.methods.setController(controllerAddress))
         .then(resolve)
         .catch(reject);
     });
@@ -97,9 +96,9 @@ export default class Market {
    */
   supply(amount, from = '') {
     return new Promise((resolve, reject) => {
-      this._token
-        .then(token => token.approve(this._address, amount, from))
-        .then(() => send(this._instance.methods.supply(amount), from))
+      this.token
+        .then((token) => token.approve(this.instanceAddress, amount, from))
+        .then(() => send(this.instance.methods.supply(amount), from))
         .then(resolve)
         .catch(reject);
     });
@@ -114,7 +113,7 @@ export default class Market {
    */
   borrow(amount, from = '') {
     return new Promise((resolve, reject) => {
-      send(this._instance.methods.borrow(amount), from)
+      send(this.instance.methods.borrow(amount), from)
         .then(resolve)
         .catch(reject);
     });
@@ -128,8 +127,8 @@ export default class Market {
   supplyOf(from = '') {
     return new Promise((resolve, reject) => {
       web3.eth.getAccounts()
-        .then(([account]) => this._instance.methods.supplyOf(from || account).call())
-        .then(balance => Number(balance))
+        .then(([account]) => this.instance.methods.supplyOf(from || account).call())
+        .then((balance) => Number(balance))
         .then(resolve)
         .catch(reject);
     });
@@ -145,8 +144,9 @@ export default class Market {
    */
   static create(tokenAddress = '', baseBorrowRate) {
     return new Promise((resolve, reject) => {
-      if (!tokenAddress.match(/0x[a-fA-F0-9]{40}/) || baseBorrowRate === undefined)
+      if (!tokenAddress.match(/0x[a-fA-F0-9]{40}/) || baseBorrowRate === undefined) {
         reject(new Error('Either the token address or the base borrow rate are missing'));
+      }
       const market = new web3.eth.Contract(MarketContract.abi);
       const deploy = market.deploy({
         data: MarketContract.bytecode,
@@ -154,9 +154,10 @@ export default class Market {
       });
       web3.eth.getAccounts()
         .then(([from]) => [from, deploy.estimateGas({ from })])
-        .then(result => Promise.all(result))
+        .then((result) => Promise.all(result))
         .then(([from, gas]) => deploy.send({ from, gas }))
-        .then(instance => instance._address)
+        // eslint-disable-next-line no-underscore-dangle
+        .then((instance) => instance._address)
         .then(resolve)
         .catch(reject);
     });

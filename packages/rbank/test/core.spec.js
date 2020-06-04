@@ -67,10 +67,10 @@ describe('Core', () => {
       market3 = new Market(await Market.create(token3._address, 10));
       market4 = new Market(await Market.create(token4._address, 10));
 
-      await controller.addMarket(market1._address);
-      await controller.addMarket(market2._address);
-      await controller.addMarket(market3._address);
-      await controller.addMarket(market4._address);
+      await controller.addMarket(market1.instanceAddress);
+      await controller.addMarket(market2.instanceAddress);
+      await controller.addMarket(market3.instanceAddress);
+      await controller.addMarket(market4.instanceAddress);
 
       await market1.setControllerAddress(controller.address);
       await market2.setControllerAddress(controller.address);

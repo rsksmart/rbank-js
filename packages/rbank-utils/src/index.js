@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import Web3 from 'web3';
 
 /**
@@ -14,7 +15,7 @@ export const web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:8545');
 
 const internalSend = (signature, from) => new Promise((resolve, reject) => {
   signature.estimateGas({ from })
-    .then(gas => signature.send({ from, gas }))
+    .then((gas) => signature.send({ from, gas }))
     .then(resolve)
     .catch(reject);
 });
@@ -27,13 +28,14 @@ const internalSend = (signature, from) => new Promise((resolve, reject) => {
  * @return {Promise<TXResult>}
  */
 export const send = (signature, from = '') => new Promise((resolve, reject) => {
-  if (from)
+  if (from) {
     internalSend(signature, from)
       .then(resolve)
       .catch(reject);
-  else
+  } else {
     web3.eth.getAccounts()
-      .then(([from]) => internalSend(signature, from))
+      .then(([account]) => internalSend(signature, account))
       .then(resolve)
       .catch(reject);
+  }
 });
