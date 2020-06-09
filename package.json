@@ -13,6 +13,7 @@
     "deploy:controller": "npm run compile && cp dependencies/DeFiProt/build/contracts/Controller.json packages/rbank-controller/src",
     "deploy:market": "npm run compile && rm -rf packages/rbank-market/src/*.json && cp dependencies/DeFiProt/build/contracts/Market.json dependencies/DeFiProt/build/contracts/FaucetToken.json packages/rbank-market/src",
     "test": "npm run build && lerna exec -- npm test",
+    "format": "prettier --config ./.prettierrc --write ./packages/**/*.js",
     "lint": "eslint --cache --fix ./packages/"
   },
   "repository": {
@@ -52,6 +53,7 @@
     "lerna": "^3.20.2",
     "mocha": "^7.1.2",
     "nyc": "^15.0.1",
+    "prettier": "^2.0.5",
     "rollup": "^2.7.3",
     "rollup-plugin-auto-external": "^2.0.0",
     "rollup-plugin-cleanup": "^3.1.1",
