@@ -52,11 +52,29 @@ export default class Rbank {
    * @return {Promise<Market>} eventual market instance
    */
   eventualMarket(id) {
-    if (typeof id === 'string') {
+    return new Promise((resolve, reject) => {
+      if (typeof id === 'string') {
+        this.markets
+          .then((markets) => markets.filter((market) => market.address === id).pop())
+          .then((result) => {
+            if (result === undefined) {
+              throw new Error('There is no market with that address');
+            }
+            return result;
+          })
+          .then(resolve)
+          .catch(reject);
+      }
       return this.markets
-        .then((markets) => markets.filter((market) => market.address === id).pop());
-    }
-    return this.markets
-      .then((markets) => markets[id]);
+        .then((markets) => markets[id])
+        .then((result) => {
+          if (result === undefined) {
+            throw new Error('There is no market at this index');
+          }
+          return result;
+        })
+        .then(resolve)
+        .catch(reject);
+    });
   }
 }

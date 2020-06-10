@@ -100,5 +100,12 @@ describe('Core', () => {
           expect(market.address).to.eq(market2.address);
         });
     });
+    it('should return an error for a non-existent market index', () => {
+      return expect(rbank.eventualMarket(4)).to.be.eventually.rejected;
+    });
+    it('should return an error for a non-registered market address', () => {
+      return expect(rbank.eventualMarket('0xC89Ce4735882C9F0f0FE26686c53074E09B0D550'))
+        .to.be.eventually.rejected;
+    });
   });
 });
