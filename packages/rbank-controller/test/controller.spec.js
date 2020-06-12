@@ -39,14 +39,14 @@ describe('Controller handler', () => {
 
     const deployMarket1 = await market.deploy({
       data: MarketContract.bytecode,
-      arguments: [token1._address, 5],
+      arguments: [token1._address, 5e14],
     });
     const gasMarket1 = await deployMarket1.estimateGas({ from: owner });
     market1 = await deployMarket1.send({ from: owner, gas: gasMarket1 });
 
     const deployMarket2 = await market.deploy({
       data: MarketContract.bytecode,
-      arguments: [token2._address, 5],
+      arguments: [token2._address, 5e14],
     });
     const gasMarket2 = await deployMarket2.estimateGas({ from: owner });
     market2 = await deployMarket2.send({ from: owner, gas: gasMarket2 });
@@ -212,7 +212,7 @@ describe('Controller handler', () => {
         });
     });
     it('should calculate the liquidity for a given account', () => {
-      return controller.setCollateralFactor(1000)
+      return controller.setCollateralFactor(1e6)
         .then(() => controller.addMarket(market1._address))
         .then(() => {
           const signature = market1.methods.setController(controller.address);
@@ -293,7 +293,7 @@ describe('Controller handler', () => {
         .then(() => controller.getAccountLiquidity(acc1))
         .then(liquidity => Number(liquidity))
         .then(liquidity => {
-          expect(liquidity).to.eq(4999);
+          expect(liquidity).to.eq(3000);
         });
     });
   });
