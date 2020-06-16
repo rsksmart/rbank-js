@@ -1,0 +1,30 @@
+{
+  "name": "@rsksmart/rbank-utils",
+  "version": "0.0.1",
+  "description": "Rbank core utils",
+  "keywords": [
+    "rbank",
+    "utils"
+  ],
+  "author": "Mesi Rendon <amrendonsa@unal.edu.co>",
+  "homepage": "https://github.com/rsksmart/rbank-js/tree/master/packages/rbank-utils#readme",
+  "license": "LGPL-3.0",
+  "main": "dist/@rsksmart/rbank-utils.cjs.js",
+  "module": "dist/@rsksmart/rbank-utils.esm.js",
+  "browser": "dist/@rsksmart/rbank-utils.umd.js",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rsksmart/rbank-js.git"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "nyc mocha --recursive --exit"
+  },
+  "bugs": {
+    "url": "https://github.com/rsksmart/rbank-js/issues"
+  }
+}

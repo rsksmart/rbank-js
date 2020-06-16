@@ -1,0 +1,3 @@
+[submodule "dependencies/DeFiProt"]
+	path = dependencies/DeFiProt
+	url = git@github.com:ajlopez/DeFiProt.git

@@ -1,0 +1,11 @@
+node_modules
+coverage
+test
+docs/_build
+dist
+package.js
+rollup.config.js
+packages/**/rollup.config.js
+packages/**/node_modules
+packages/**/test
+demo

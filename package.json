@@ -1,0 +1,66 @@
+{
+  "name": "@rsksmart/rbank.js",
+  "version": "0.0.1",
+  "description": "RBank DeFi Library",
+  "main": "packages/rbank/src/index.js",
+  "scripts": {
+    "bootstrap-local": "lerna bootstrap --force-local",
+    "bootstrap": "lerna bootstrap",
+    "bootstrap-yarn": "lerna bootstrap --npm-client yarn  -- --no-lockfile",
+    "build": "lerna run build",
+    "clean": "lerna clean",
+    "compile": "cd dependencies/DeFiProt/ && truffle compile",
+    "deploy:controller": "npm run compile && cp dependencies/DeFiProt/build/contracts/Controller.json packages/rbank-controller/src",
+    "deploy:market": "npm run compile && rm -rf packages/rbank-market/src/*.json && cp dependencies/DeFiProt/build/contracts/Market.json dependencies/DeFiProt/build/contracts/FaucetToken.json packages/rbank-market/src",
+    "test": "npm run build && lerna exec -- npm test",
+    "format": "prettier --config ./.prettierrc --write ./packages/**/*.js",
+    "lint": "eslint --cache --fix ./packages/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rsksmart/rbank-js.git"
+  },
+  "keywords": [
+    "rbank",
+    "defi",
+    "javascript",
+    "library"
+  ],
+  "author": "RSK Innovation Labs",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/rsksmart/rbank-js/issues"
+  },
+  "homepage": "https://github.com/rsksmart/rbank-js#readme",
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-proposal-export-default-from": "^7.8.3",
+    "@babel/plugin-proposal-export-namespace-from": "^7.8.3",
+    "@babel/plugin-transform-runtime": "^7.9.6",
+    "@babel/polyfill": "^7.8.7",
+    "@babel/preset-env": "^7.9.5",
+    "@babel/register": "^7.9.0",
+    "@rollup/plugin-babel": "^5.0.2",
+    "@rollup/plugin-commonjs": "^12.0.0",
+    "@rollup/plugin-json": "^4.0.3",
+    "@rollup/plugin-node-resolve": "^8.0.0",
+    "babel-eslint": "^10.1.0",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-import": "^2.20.2",
+    "lerna": "^3.20.2",
+    "mocha": "^7.1.2",
+    "nyc": "^15.0.1",
+    "prettier": "^2.0.5",
+    "rollup": "^2.7.3",
+    "rollup-plugin-auto-external": "^2.0.0",
+    "rollup-plugin-cleanup": "^3.1.1",
+    "sinon": "^9.0.2"
+  },
+  "dependencies": {
+    "lodash": "^4.17.15",
+    "web3": "^1.2.8"
+  }
+}
