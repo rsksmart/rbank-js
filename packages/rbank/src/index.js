@@ -14,7 +14,6 @@ export default class Rbank {
     this.Controller = Controller;
     this.Market = Market;
     this.internalController = null;
-    this.markets = new Promise((resolve) => { resolve([]); });
   }
 
   /**
@@ -29,7 +28,11 @@ export default class Rbank {
    */
   set controller(controllerAddress) {
     this.internalController = new this.Controller(controllerAddress);
-    this.markets = this.internalController.eventualMarketListSize
+    this.markets();
+  }
+
+  markets() {
+    return this.internalController.eventualMarketListSize
       .then((marketListSize) => _.range(marketListSize))
       .then((marketIdxs) => marketIdxs
         .map((marketIdx) => this.internalController.getEventualMarketAddress(marketIdx)))
@@ -42,7 +45,9 @@ export default class Rbank {
    * Returns the eventual market instances that are registered in the specified controller.
    * @return {Promise<[Market]>} eventual array of market instances.
    */
-  get eventualMarkets() { return this.markets; }
+  get eventualMarkets() {
+    return this.markets();
+  }
 
   /**
    * Gets an eventual instance of the specified market either by its position in the market list or
@@ -54,7 +59,7 @@ export default class Rbank {
   eventualMarket(id) {
     return new Promise((resolve, reject) => {
       if (typeof id === 'string') {
-        this.markets
+        this.markets()
           .then((markets) => markets.filter((market) => market.address === id).pop())
           .then((result) => {
             if (result === undefined) {
@@ -65,7 +70,7 @@ export default class Rbank {
           .then(resolve)
           .catch(reject);
       }
-      return this.markets
+      return this.markets()
         .then((markets) => markets[id])
         .then((result) => {
           if (result === undefined) {

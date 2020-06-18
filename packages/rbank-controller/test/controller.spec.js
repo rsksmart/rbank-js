@@ -13,15 +13,14 @@ const { expect } = chai;
 
 describe('Controller handler', () => {
   let controller;
-  let token1;
-  let token2;
-  let market1;
-  let market2;
+  let token1, token2;
+  let market1, market2;
+  let owner, from;
   beforeEach(async () => {
     controller = new Controller(await Controller.create());
     const token = new web3.eth.Contract(FaucetTokenContract.abi);
     const market = new web3.eth.Contract(MarketContract.abi);
-    const [owner, from] = await web3.eth.getAccounts();
+    [owner, from] = await web3.eth.getAccounts();
 
     const deployToken1 = token.deploy({
       data: FaucetTokenContract.bytecode,
@@ -39,14 +38,14 @@ describe('Controller handler', () => {
 
     const deployMarket1 = await market.deploy({
       data: MarketContract.bytecode,
-      arguments: [token1._address, 5],
+      arguments: [token1._address, 5e14],
     });
     const gasMarket1 = await deployMarket1.estimateGas({ from: owner });
     market1 = await deployMarket1.send({ from: owner, gas: gasMarket1 });
 
     const deployMarket2 = await market.deploy({
       data: MarketContract.bytecode,
-      arguments: [token2._address, 5],
+      arguments: [token2._address, 5e14],
     });
     const gasMarket2 = await deployMarket2.estimateGas({ from: owner });
     market2 = await deployMarket2.send({ from: owner, gas: gasMarket2 });
@@ -64,7 +63,7 @@ describe('Controller handler', () => {
           expect(collateralFactor).to.eq(0);
         });
     });
-    it('should get zero collateral factor', () => {
+    it('should get zero liquidation factor', () => {
       return controller.eventualLiquidationFactor
         .then(collateralFactor => {
           expect(collateralFactor).to.eq(0);
@@ -82,6 +81,24 @@ describe('Controller handler', () => {
         .then(() => controller.eventualLiquidationFactor)
         .then(liquidationFactor => {
           expect(liquidationFactor).to.eq(3);
+        });
+    });
+    it('should validate if the current account is the controller owner', () => {
+      return controller.eventualIsOwner()
+        .then((isOwner) => {
+          expect(isOwner).to.be.true;
+        });
+    });
+    it('should validate if certain account is the controller owner', () => {
+      return controller.eventualIsOwner(from)
+        .then((isOwner) => {
+          expect(isOwner).to.be.false;
+        });
+    });
+    it('should tell what account is the owner', () => {
+      return controller.eventualOwner
+        .then((registeredOwner) => {
+          expect(registeredOwner).to.eq(owner);
         });
     });
   });
@@ -212,7 +229,7 @@ describe('Controller handler', () => {
         });
     });
     it('should calculate the liquidity for a given account', () => {
-      return controller.setCollateralFactor(1000)
+      return controller.setCollateralFactor(1e6)
         .then(() => controller.addMarket(market1._address))
         .then(() => {
           const signature = market1.methods.setController(controller.address);
@@ -293,7 +310,7 @@ describe('Controller handler', () => {
         .then(() => controller.getAccountLiquidity(acc1))
         .then(liquidity => Number(liquidity))
         .then(liquidity => {
-          expect(liquidity).to.eq(4999);
+          expect(liquidity).to.eq(3000);
         });
     });
   });
