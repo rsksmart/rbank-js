@@ -13,15 +13,14 @@ const { expect } = chai;
 
 describe('Controller handler', () => {
   let controller;
-  let token1;
-  let token2;
-  let market1;
-  let market2;
+  let token1, token2;
+  let market1, market2;
+  let owner, from;
   beforeEach(async () => {
     controller = new Controller(await Controller.create());
     const token = new web3.eth.Contract(FaucetTokenContract.abi);
     const market = new web3.eth.Contract(MarketContract.abi);
-    const [owner, from] = await web3.eth.getAccounts();
+    [owner, from] = await web3.eth.getAccounts();
 
     const deployToken1 = token.deploy({
       data: FaucetTokenContract.bytecode,
@@ -64,7 +63,7 @@ describe('Controller handler', () => {
           expect(collateralFactor).to.eq(0);
         });
     });
-    it('should get zero collateral factor', () => {
+    it('should get zero liquidation factor', () => {
       return controller.eventualLiquidationFactor
         .then(collateralFactor => {
           expect(collateralFactor).to.eq(0);
@@ -82,6 +81,24 @@ describe('Controller handler', () => {
         .then(() => controller.eventualLiquidationFactor)
         .then(liquidationFactor => {
           expect(liquidationFactor).to.eq(3);
+        });
+    });
+    it('should validate if the current account is the controller owner', () => {
+      return controller.eventualIsOwner()
+        .then((isOwner) => {
+          expect(isOwner).to.be.true;
+        });
+    });
+    it('should validate if certain account is the controller owner', () => {
+      return controller.eventualIsOwner(from)
+        .then((isOwner) => {
+          expect(isOwner).to.be.false;
+        });
+    });
+    it('should tell what account is the owner', () => {
+      return controller.eventualOwner
+        .then((registeredOwner) => {
+          expect(registeredOwner).to.eq(owner);
         });
     });
   });

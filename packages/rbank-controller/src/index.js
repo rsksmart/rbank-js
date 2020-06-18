@@ -1,7 +1,6 @@
 import { send, web3 } from '@rsksmart/rbank-utils';
 import ControllerContract from './Controller.json';
 
-
 /**
  * A blockchain transaction response.
  * @typedef {Object} TXResult
@@ -10,7 +9,7 @@ import ControllerContract from './Controller.json';
 /**
  * Controller handler.
  */
-export default class Index {
+export default class Controller {
   /**
    * Controller handler constructor.
    * @param {string} address On chain `Controller` deployed address.
@@ -68,6 +67,19 @@ export default class Index {
       this.instance.methods.marketListSize()
         .call()
         .then((marketListSize) => Number(marketListSize))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns the eventual controller owner.
+   * @return {Promise<string>} eventual controller owner.
+   */
+  get eventualOwner() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.owner()
+        .call()
         .then(resolve)
         .catch(reject);
     });
@@ -190,6 +202,28 @@ export default class Index {
     return new Promise((resolve, reject) => {
       this.instance.methods.marketList(marketIdx)
         .call()
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Validates either the current account or an specified one is the owner of this controller.
+   * @param {string=} from the account used to determine property of this controller.
+   * @return {Promise<boolean>} eventual answer of property validation.
+   */
+  eventualIsOwner(from = '') {
+    return new Promise((resolve, reject) => {
+      web3.eth.getAccounts()
+        .then(([account]) => [
+          account,
+          this.instance.methods.owner().call(),
+        ])
+        .then((results) => Promise.all(results))
+        .then(([account, registeredOwner]) => {
+          if (from) { return from === registeredOwner; }
+          return account === registeredOwner;
+        })
         .then(resolve)
         .catch(reject);
     });

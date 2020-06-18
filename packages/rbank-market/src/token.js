@@ -12,6 +12,34 @@ export default class Token {
     return this.internalAddress;
   }
 
+  get eventualName() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.name()
+        .call()
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  get eventualSymbol() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.symbol()
+        .call()
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  get eventualDecimals() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.decimals()
+        .call()
+        .then((decimals) => Number(decimals))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
   approve(marketAddress, amount, from = '') {
     return new Promise((resolve, reject) => {
       send(this.instance.methods.approve(marketAddress, amount), from)

@@ -18,7 +18,7 @@ describe('Token handler', () => {
     const token = new web3.eth.Contract(TokenContract.abi);
     const deploy = token.deploy({
       data: TokenContract.bytecode,
-      arguments: [1000000000000, 'TOK1', 0, 'TOK1'],
+      arguments: [1000000000000, 'Token 1', 0, 'TOK1'],
     });
     const [owner, user] = await web3.eth.getAccounts();
     const gas = await deploy.estimateGas({ from: owner });
@@ -50,6 +50,10 @@ describe('Token handler', () => {
     });
   });
   context('Operational', () => {
+    let tok;
+    beforeEach(async () => {
+      tok = new Token(await token1._address);
+    });
     it('should allow a token holder to authorize an address to perform transfers on their behalf', () => {
       const t1 = new Token(token1._address);
       return t1.approve(market.address, 10)
@@ -65,6 +69,24 @@ describe('Token handler', () => {
         .then(result => {
           expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
         });
-    })
+    });
+    it('should return the token name', () => {
+      return tok.eventualName
+        .then((name) => {
+          expect(name).to.eq('Token 1');
+        });
+    });
+    it('should return the token symbol', () => {
+      return tok.eventualSymbol
+        .then((symbol) => {
+          expect(symbol).to.eq('TOK1');
+        });
+    });
+    it('should return the token decimals', () => {
+      return tok.eventualDecimals
+        .then((decimals) => {
+          expect(decimals).to.eq(0);
+        });
+    });
   });
 });
