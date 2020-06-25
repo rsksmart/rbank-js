@@ -13,6 +13,7 @@ export default class Rbank {
   constructor() {
     this.Controller = Controller;
     this.Market = Market;
+    this.Token = Market.Token;
     this.internalController = null;
   }
 

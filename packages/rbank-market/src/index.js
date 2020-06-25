@@ -1,4 +1,4 @@
-import { send, web3 } from '@rsksmart/rbank-utils';
+import { BN, send, web3 } from '@rsksmart/rbank-utils';
 import MarketContract from './Market.json';
 import Token from './token';
 
@@ -47,14 +47,16 @@ export default class Market {
   }
 
   /**
-   * Returns an eventual base borrow rate for this market.
+   * Returns an eventual borrow rate, it varies depending on the total borrows
+   * and cash of this market.
    * @return {Promise<number>} eventual market's base borrow rate.
    */
-  get eventualBaseBorrowRate() {
+  get eventualBorrowRate() {
     return new Promise((resolve, reject) => {
-      this.instance.methods.baseBorrowRate()
+      this.instance.methods.borrowRatePerBlock()
         .call()
-        .then((baseBorrowRate) => Number(baseBorrowRate))
+        .then((borrowRatePerBlock) => new BN(borrowRatePerBlock)
+          .div(new BN(1e18)).toNumber())
         .then(resolve)
         .catch(reject);
     });
@@ -69,6 +71,20 @@ export default class Market {
       this.instance.methods.getCash()
         .call()
         .then((balance) => Number(balance))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns the eventual factor od this market.
+   * @returns {Promise<number>}
+   */
+  get eventualFactor() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.FACTOR()
+        .call()
+        .then((factor) => Number(factor))
         .then(resolve)
         .catch(reject);
     });
@@ -150,7 +166,7 @@ export default class Market {
       const market = new web3.eth.Contract(MarketContract.abi);
       const deploy = market.deploy({
         data: MarketContract.bytecode,
-        arguments: [tokenAddress, baseBorrowRate],
+        arguments: [tokenAddress, new BN(baseBorrowRate).times(new BN(1e18))],
       });
       web3.eth.getAccounts()
         .then(([from]) => [from, deploy.estimateGas({ from })])
@@ -161,5 +177,14 @@ export default class Market {
         .then(resolve)
         .catch(reject);
     });
+  }
+
+  /**
+   * Returns a Token Handler
+   * @returns {Token}
+   * @constructor
+   */
+  static get Token() {
+    return Token;
   }
 }

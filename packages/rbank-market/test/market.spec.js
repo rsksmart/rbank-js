@@ -5,6 +5,7 @@ import FaucetTokenContract from '../../../dependencies/DeFiProt/build/contracts/
 import ControllerContract from '../../../dependencies/DeFiProt/build/contracts/Controller.json';
 import Market from '../src';
 
+
 const web3 = new Web3(Web3.givenProvider || 'ws://localhost:8545');
 
 chai.use(chaiAsPromised);
@@ -44,6 +45,11 @@ describe('Market handler', () => {
     const marketPriceSignature = controller.methods.setPrice(market1Address, 10);
     const marketPriceGas = await marketPriceSignature.estimateGas({ from: owner });
     await marketPriceSignature.send({ from: owner, gas: marketPriceGas });
+  });
+  context('Token availability', () => {
+    it('should have access to the Token handler', () => {
+      return expect(Market.Token.toString()).to.match(/Token/);
+    });
   });
   context('Creation', () => {
     it('should throw an error no token address is set', () => {
@@ -88,12 +94,6 @@ describe('Market handler', () => {
         .then(() => market1.eventualController)
         .then(resolvedController => {
           expect(resolvedController).to.eq(controller._address);
-        });
-    });
-    it('should have the same borrow rate from its creation', () => {
-      return market1.eventualBaseBorrowRate
-        .then(baseBorrowRate => {
-          expect(baseBorrowRate).to.eq(10);
         });
     });
   });
@@ -187,6 +187,24 @@ describe('Market handler', () => {
         })
         .then(balance => {
           expect(balance).to.eq(230);
+        });
+    });
+    it('should return the FACTOR constant of a market', () => {
+      return market1.eventualFactor
+        .then((factor) => {
+          expect(factor).to.eq(1e18);
+        });
+    });
+    it('should get the borrow rate depending on the market borrow transactions', () => {
+      return market1.supply(250, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(20, user2))
+        .then(result => {
+          expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
+          return market1.eventualBorrowRate;
+        })
+        .then(borrowRate => {
+          expect(borrowRate).to.eq(10.00008);
         });
     });
     it('should allow a second user to pay a borrowed amount');

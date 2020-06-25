@@ -2,6 +2,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as utils from '../src';
 import ControllerContract from '../../../dependencies/DeFiProt/build/contracts/Controller.json';
+import BN from 'bignumber.js';
 
 chai.use(chaiAsPromised);
 
@@ -36,5 +37,8 @@ describe('Utils module', () => {
       .then(result => {
         expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
       });
+  });
+  it('should get a BigNumber instance', () => {
+    return expect(utils.BN).to.eq(BN);
   });
 });

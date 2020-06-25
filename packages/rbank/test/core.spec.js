@@ -4,7 +4,7 @@ import Web3 from 'web3';
 import Rbank from '../src';
 import Controller from '@rsksmart/rbank-controller';
 import Market from '@rsksmart/rbank-market';
-import Token from '../../rbank-market/src/FaucetToken.json';
+import TokenContract from '../../rbank-market/src/FaucetToken.json';
 
 const web3 = new Web3(Web3.givenProvider || 'ws://localhost:8545');
 
@@ -24,6 +24,9 @@ describe('Core', () => {
     it('should have access to the market handler', () => {
       return expect(rbank.Market).to.eq(Market);
     });
+    it('should have access to the token handler', () => {
+      return expect(rbank.Token).to.match(/Token/);
+    });
   });
   context('Operational', () => {
     let controller;
@@ -31,26 +34,26 @@ describe('Core', () => {
     beforeEach(async () => {
       const [owner] = await web3.eth.getAccounts();
 
-      const token = new web3.eth.Contract(Token.abi);
+      const token = new web3.eth.Contract(TokenContract.abi);
 
       const deployToken1 = token.deploy({
-        data: Token.bytecode,
+        data: TokenContract.bytecode,
         arguments: [100000, 'TOK1', 0, 'TOK1'],
       });
       const deployToken2 = token.deploy({
-        data: Token.bytecode,
+        data: TokenContract.bytecode,
         arguments: [100000, 'TOK2', 0, 'TOK2'],
       });
       const deployToken3 = token.deploy({
-        data: Token.bytecode,
+        data: TokenContract.bytecode,
         arguments: [100000, 'TOK3', 0, 'TOK3'],
       });
       const deployToken4 = token.deploy({
-        data: Token.bytecode,
+        data: TokenContract.bytecode,
         arguments: [100000, 'TOK4', 0, 'TOK4'],
       });
       const deployToken5 = token.deploy({
-        data: Token.bytecode,
+        data: TokenContract.bytecode,
         arguments: [100000, 'TOK5', 0, 'TOK5'],
       });
 

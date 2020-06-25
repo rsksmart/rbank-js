@@ -1,3 +1,3 @@
-const nycConfig = require("../../nyc.config");
+const nycConfig = require('../../nyc.config');
 
 module.exports = nycConfig;
