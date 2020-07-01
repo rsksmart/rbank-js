@@ -94,6 +94,48 @@ export default class Market {
   }
 
   /**
+   * Returns the eventual updated total supply of this market.
+   * @return {Promise<number>}
+   */
+  get eventualUpdatedTotalSupply() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.getUpdatedTotalSupply()
+        .call()
+        .then((updatedTotalSupply) => Number(updatedTotalSupply))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns the eventual updated total borrows of this market.
+   * @return {Promise<number>}
+   */
+  get eventualUpdatedTotalBorrows() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.getUpdatedTotalBorrows()
+        .call()
+        .then((updatedTotalBorrows) => Number(updatedTotalBorrows))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns the eventual cash of this market.
+   * @return {Promise<number>}
+   */
+  get eventualCash() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.getCash()
+        .call()
+        .then((cash) => Number(cash))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
    * Registers a controller for this market.
    * @param {string} controllerAddress On chain controller's address
    * @return {Promise<TXResult>}

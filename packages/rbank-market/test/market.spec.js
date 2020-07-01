@@ -98,11 +98,11 @@ describe('Market handler', () => {
     });
   });
   context('Operational', () => {
-    let owner, user1, user2, user3, user4;
+    let owner, user1, user2, user3, user4, user5;
     let token2;
     let market2;
     beforeEach(async () => {
-      [owner, user1, user2, user3, user4] = await web3.eth.getAccounts();
+      [owner, user1, user2, user3, user4, user5] = await web3.eth.getAccounts();
 
       const deployToken2 = token.deploy({
         data: FaucetTokenContract.bytecode,
@@ -205,6 +205,42 @@ describe('Market handler', () => {
         })
         .then(borrowRate => {
           expect(borrowRate).to.eq(10.00008);
+        });
+    });
+    it('should return the updated total supplies of a market', () => {
+      return market1.supply(250, user1)
+        .then(() => token1.methods.allocateTo(user5, 1000).send({ from: user1 }))
+        .then(() => market1.supply(1000, user5))
+        .then(result => {
+          expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
+          return market1.eventualUpdatedTotalSupply;
+        })
+        .then((updatedTotalSupply) => {
+          expect(updatedTotalSupply).to.eq(1250);
+        });
+    });
+    it('should return the updated total borrows of a market', () => {
+      return market1.supply(250, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(50, user2))
+        .then(result => {
+          expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
+          return market1.eventualUpdatedTotalBorrows;
+        })
+        .then((updatedTotalSupply) => {
+          expect(updatedTotalSupply).to.eq(50);
+        });
+    });
+    it('should return the cash of a market', () => {
+      return market1.supply(250, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(50, user2))
+        .then(result => {
+          expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
+          return market1.eventualCash;
+        })
+        .then((updatedTotalSupply) => {
+          expect(updatedTotalSupply).to.eq(200);
         });
     });
     it('should allow a second user to pay a borrowed amount');
