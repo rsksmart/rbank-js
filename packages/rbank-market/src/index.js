@@ -53,10 +53,13 @@ export default class Market {
    */
   get eventualBorrowRate() {
     return new Promise((resolve, reject) => {
-      this.instance.methods.borrowRatePerBlock()
-        .call()
-        .then((borrowRatePerBlock) => new BN(borrowRatePerBlock)
-          .div(new BN(1e18)).toNumber())
+      this.eventualFactor
+        .then((factor) => [factor,
+          this.instance.methods.borrowRatePerBlock().call(),
+        ])
+        .then((promises) => Promise.all(promises))
+        .then(([factor, borrowRatePerBlock]) => new BN(borrowRatePerBlock)
+          .div(new BN(factor)).toNumber())
         .then(resolve)
         .catch(reject);
     });
@@ -77,7 +80,7 @@ export default class Market {
   }
 
   /**
-   * Returns the eventual factor od this market.
+   * Returns the eventual factor of this market.
    * @returns {Promise<number>}
    */
   get eventualFactor() {

@@ -30,7 +30,7 @@ describe('Core', () => {
   });
   context('Operational', () => {
     let controller;
-    let market1, market2, market3, market4, market5;
+    let token1, market1, market2, market3, market4, market5;
     beforeEach(async () => {
       const [owner] = await web3.eth.getAccounts();
 
@@ -63,7 +63,7 @@ describe('Core', () => {
       const gasToken4 = await deployToken4.estimateGas({ from: owner });
       const gasToken5 = await deployToken5.estimateGas({ from: owner });
 
-      const token1 = await deployToken1.send({ from: owner, gas: gasToken1 });
+      token1 = await deployToken1.send({ from: owner, gas: gasToken1 });
       const token2 = await deployToken2.send({ from: owner, gas: gasToken2 });
       const token3 = await deployToken3.send({ from: owner, gas: gasToken3 });
       const token4 = await deployToken4.send({ from: owner, gas: gasToken4 });
@@ -124,6 +124,18 @@ describe('Core', () => {
     it('should return an error for a non-registered market address', () => {
       return expect(rbank.eventualMarket('0xC89Ce4735882C9F0f0FE26686c53074E09B0D550'))
         .to.be.eventually.rejected;
+    });
+    it('should return and error with a invalid token address', () => {
+      return rbank.marketExistsByToken(controller.address)
+        .then((validationResult) => {
+          expect(validationResult).to.be.false;
+        });
+    });
+    it('should validate if a market with a given token address already exists', () => {
+      return rbank.marketExistsByToken(token1._address)
+        .then((validationResult) => {
+          expect(validationResult).to.be.true;
+        });
     });
   });
 });

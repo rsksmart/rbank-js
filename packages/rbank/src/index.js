@@ -32,6 +32,10 @@ export default class Rbank {
     this.markets();
   }
 
+  /**
+   * Returns the list of existing markets.
+   * @return {Promise<Market[]>}
+   */
   markets() {
     return this.internalController.eventualMarketListSize
       .then((marketListSize) => _.range(marketListSize))
@@ -81,6 +85,19 @@ export default class Rbank {
         })
         .then(resolve)
         .catch(reject);
+    });
+  }
+
+  /**
+   * Returns if the market with the given token address already exists.
+   * @param tokenAddress
+   * @return {Promise<boolean>}
+   */
+  marketExistsByToken(tokenAddress) {
+    return new Promise((resolve) => {
+      this.internalController.getEventualMarketAddressByToken(tokenAddress)
+        .then(() => resolve(true))
+        .catch(() => resolve(false));
     });
   }
 }

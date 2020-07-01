@@ -123,6 +123,12 @@ describe('Market handler', () => {
       await market2PriceSignature.send({ from: owner, gas: market2PriceGas });
       await market2.setControllerAddress(controller._address);
     });
+    it('should return the FACTOR constant of a market', () => {
+      return market1.eventualFactor
+        .then((factor) => {
+          expect(factor).to.eq(1e18);
+        });
+    });
     it('should throws an error if there is not enough eventualBalance to supply into a market', () => {
       return expect(market1.supply(250, user2)).to.be.eventually.rejected;
     });
@@ -187,12 +193,6 @@ describe('Market handler', () => {
         })
         .then(balance => {
           expect(balance).to.eq(230);
-        });
-    });
-    it('should return the FACTOR constant of a market', () => {
-      return market1.eventualFactor
-        .then((factor) => {
-          expect(factor).to.eq(1e18);
         });
     });
     it('should get the borrow rate depending on the market borrow transactions', () => {

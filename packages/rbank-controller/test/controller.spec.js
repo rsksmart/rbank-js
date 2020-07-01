@@ -57,6 +57,12 @@ describe('Controller handler', () => {
     it('should get a new instance using the controller registered address', () => {
       expect(controller).not.to.be.an('error');
     });
+    it('should get the controller mantissa as number', () => {
+      return controller.eventualMantissa
+          .then(mantissa => {
+            expect(mantissa).to.eq(1e6);
+          });
+    });
     it('should get zero collateral factor', () => {
       return controller.eventualCollateralFactor
         .then(collateralFactor => {
@@ -70,17 +76,17 @@ describe('Controller handler', () => {
         });
     });
     it('should allow the controller owner to set a new collateral factor', () => {
-      return controller.setCollateralFactor(2)
+      return controller.setCollateralFactor(1)
         .then(() => controller.eventualCollateralFactor)
         .then(collateralFactor => {
-          expect(collateralFactor).to.eq(2);
+          expect(collateralFactor).to.eq(1);
         });
     });
     it('should allow the controller owner to set a new liquidation factor', () => {
-      return controller.setLiquidationFactor(3)
+      return controller.setLiquidationFactor(0.5)
         .then(() => controller.eventualLiquidationFactor)
         .then(liquidationFactor => {
-          expect(liquidationFactor).to.eq(3);
+          expect(liquidationFactor).to.eq(0.5);
         });
     });
     it('should validate if the current account is the controller owner', () => {
@@ -108,6 +114,17 @@ describe('Controller handler', () => {
         .then(marketListSize => {
           expect(marketListSize).to.eq(0);
         });
+    });
+    it('should validate if a market already exist with a token address', () => {
+      return controller.addMarket(market1._address)
+        .then(() => controller.getEventualMarketAddressByToken(token1._address))
+        .then((marketAddress) => {
+          expect(marketAddress).match(/0x[A-Fa-f0-9]{40}/);
+        });
+    });
+    it('should return an empty address if the address given it is not a token address', () => {
+      return expect(controller.getEventualMarketAddressByToken(controller.address))
+        .to.be.eventually.rejected;
     });
     it('should allow the controller owner to add new markets', () => {
       return controller.addMarket(market1._address)
@@ -229,7 +246,7 @@ describe('Controller handler', () => {
         });
     });
     it('should calculate the liquidity for a given account', () => {
-      return controller.setCollateralFactor(1e6)
+      return controller.setCollateralFactor(1)
         .then(() => controller.addMarket(market1._address))
         .then(() => {
           const signature = market1.methods.setController(controller.address);
