@@ -243,10 +243,27 @@ describe('Market handler', () => {
           expect(updatedTotalSupply).to.eq(200);
         });
     });
-    it('should allow a second user to pay a borrowed amount');
+    it('should allow a second user to pay a borrowed amount', () => {
+      return market1.supply(500, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(50, user2))
+        .then(() => market1.payBorrow(10, user2))
+        .then((result) => {
+          expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
+        });
+    });
     it('should allow a first user to redeem tokens previously supplied into the market');
     it('should throw an error on redeem if there is not enough supplied amount from the user');
-    it('should allow anyone to get the updatedSupplyOf value of any account');
+    it('should allow anyone to get the updatedSupplyOf value of any account', () => {
+      return market1.supply(250, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(50, user2))
+        .then(() => market1.payBorrow(50, user2))
+        .then(() => market1.updatedSupplyOf(user1))
+        .then(updatedSupplyOf => {
+          expect(updatedSupplyOf).to.eq(4450);
+        });
+    });
     it('should allow anyone to get the updatedBorrowedBy value of any account');
     it('should allow anyone to get the current Market eventualBalance in its token terms');
   });

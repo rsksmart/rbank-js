@@ -14,13 +14,14 @@ const { expect } = chai;
 describe('Token handler', () => {
   let token1;
   let market;
+  let owner, user;
   beforeEach(async () => {
     const token = new web3.eth.Contract(TokenContract.abi);
     const deploy = token.deploy({
       data: TokenContract.bytecode,
       arguments: [1000000000000, 'Token 1', 0, 'TOK1'],
     });
-    const [owner, user] = await web3.eth.getAccounts();
+    [owner, user] = await web3.eth.getAccounts();
     const gas = await deploy.estimateGas({ from: owner });
     token1 = await deploy.send({ from: owner, gas });
     market = new Market(await Market.create(token1._address, 10));
@@ -86,6 +87,12 @@ describe('Token handler', () => {
       return tok.eventualDecimals
         .then((decimals) => {
           expect(decimals).to.eq(0);
+        });
+    });
+    it('should return the balance of an account', () => {
+      return tok.eventualBalanceOf(user)
+        .then((balanceOf) => {
+          expect(balanceOf).to.eq(1000);
         });
     });
   });

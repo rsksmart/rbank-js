@@ -40,6 +40,20 @@ export default class Token {
     });
   }
 
+  /**
+   * Returns the balance available of this token by the caller.
+   * @param {string=} from if specified executes the transaction using this account.
+   * @return {Promise<TXResult>}
+   */
+  eventualBalanceOf(from = '') {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.balanceOf(from).call()
+        .then((balance) => Number(balance))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
   approve(marketAddress, amount, from = '') {
     return new Promise((resolve, reject) => {
       send(this.instance.methods.approve(marketAddress, amount), from)
