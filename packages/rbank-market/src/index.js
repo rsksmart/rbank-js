@@ -199,6 +199,23 @@ export default class Market {
   }
 
   /**
+   * Withdraws the specified amount of tokens from this market.
+   * It may fail if the amount given exceeds the market's cash or if
+   * the amount given it's bigger than the total amount supplied by
+   * the user.
+   * @param {number} amount of this market's token to be redeem.
+   * @param {string=} from if specified executes the transaction using this account.
+   * @return {Promise<TXResult>}
+   */
+  redeem(amount, from = '') {
+    return new Promise((resolve, reject) => {
+      send(this.instance.methods.redeem(amount), from)
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
    * Returns the amount on this market's token that has been supplied by the caller.
    * @param {string=} from if specified executes the transaction using this account.
    * @return {Promise<number>}

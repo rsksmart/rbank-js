@@ -252,7 +252,13 @@ describe('Market handler', () => {
           expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
         });
     });
-    it('should allow a first user to redeem tokens previously supplied into the market');
+    it('should allow a first user to redeem tokens previously supplied into the market', () => {
+      return market1.supply(500, user1)
+        .then(() => market1.redeem(500, user1))
+        .then((result) => {
+          expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
+        });
+    });
     it('should throw an error on redeem if there is not enough supplied amount from the user');
     it('should allow anyone to get the updatedSupplyOf value of any account', () => {
       return market1.supply(250, user1)
