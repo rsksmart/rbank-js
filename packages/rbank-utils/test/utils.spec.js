@@ -17,7 +17,7 @@ describe('Utils module', () => {
     user = user1;
   });
   it('should have a web3 instance tied to localhost', () => {
-    return expect(utils.web3.currentProvider.host).to.eq('http://127.0.0.1:8545');
+    return expect(utils.web3.currentProvider.url).to.eq('ws://127.0.0.1:8545');
   });
   it('should properly send transactions generically', () => {
     return utils.web3.eth.getAccounts()

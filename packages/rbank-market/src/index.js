@@ -74,6 +74,12 @@ export default class Market {
     });
   }
 
+  get events() {
+    return {
+      supply: (cb) => this.instance.events.Supply({ fromBlock: 'latest' }, cb),
+    };
+  }
+
   /**
    * Registers a controller for this market.
    * @param {string} controllerAddress On chain controller's address
@@ -127,7 +133,8 @@ export default class Market {
   supplyOf(from = '') {
     return new Promise((resolve, reject) => {
       web3.eth.getAccounts()
-        .then(([account]) => this.instance.methods.supplyOf(from || account).call())
+        .then(([account]) => this.instance.methods.supplyOf(from || account)
+          .call())
         .then((balance) => Number(balance))
         .then(resolve)
         .catch(reject);
@@ -155,7 +162,10 @@ export default class Market {
       web3.eth.getAccounts()
         .then(([from]) => [from, deploy.estimateGas({ from })])
         .then((result) => Promise.all(result))
-        .then(([from, gas]) => deploy.send({ from, gas }))
+        .then(([from, gas]) => deploy.send({
+          from,
+          gas,
+        }))
         // eslint-disable-next-line no-underscore-dangle
         .then((instance) => instance._address)
         .then(resolve)

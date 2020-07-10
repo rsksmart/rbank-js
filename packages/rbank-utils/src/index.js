@@ -11,7 +11,7 @@ import Web3 from 'web3';
  * network by default.
  * @type {Web3}
  */
-export const web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:8545');
+export const web3 = new Web3(Web3.givenProvider || 'ws://127.0.0.1:8545');
 
 const internalSend = (signature, from) => new Promise((resolve, reject) => {
   signature.estimateGas({ from })
