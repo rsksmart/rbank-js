@@ -176,23 +176,25 @@ describe('Market handler', () => {
           expect(market1.borrow(100, user2)).to.be.eventually.rejected;
         });
     });
-    it('should return the eventualBalance of a supplied market', () => {
-      return market1.supply(250, user1)
-        .then(() => market1.eventualBalance)
-        .then(balance => {
-          expect(balance).to.eq(250);
-        });
-    });
     it('should allow a second user borrowing from what was supplied by a first one', () => {
       return market1.supply(250, user1)
         .then(() => market2.supply(250, user2))
         .then(() => market1.borrow(20, user2))
         .then(result => {
           expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
-          return market1.eventualBalance;
+          return market1.eventualCash;
         })
         .then(balance => {
           expect(balance).to.eq(230);
+        });
+    });
+    it('should return the value that the user borrowed from the market', () => {
+      return market1.supply(250, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(20, user2))
+        .then(() => market1.borrowBy(user2))
+        .then(borrowBy => {
+          expect(borrowBy).to.eq(20);
         });
     });
     it('should get the borrow rate depending on the market borrow transactions', () => {
@@ -259,18 +261,11 @@ describe('Market handler', () => {
           expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
         });
     });
-    it('should throw an error on redeem if there is not enough supplied amount from the user');
-    it('should allow anyone to get the updatedSupplyOf value of any account', () => {
-      return market1.supply(250, user1)
-        .then(() => market2.supply(250, user2))
-        .then(() => market1.borrow(50, user2))
-        .then(() => market1.payBorrow(50, user2))
-        .then(() => market1.updatedSupplyOf(user1))
-        .then(updatedSupplyOf => {
-          expect(updatedSupplyOf).to.eq(4450);
-        });
+    it('should throw an error on redeem if there is not enough supplied amount from the user', () => {
+      return market1.supply(500, user1)
+        .then(() => expect(market1.redeem(600, user1)).to.be.eventually.rejected);
     });
+    it('should allow anyone to get the updatedSupplyOf value of any account');
     it('should allow anyone to get the updatedBorrowedBy value of any account');
-    it('should allow anyone to get the current Market eventualBalance in its token terms');
   });
 });

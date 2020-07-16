@@ -66,20 +66,6 @@ export default class Market {
   }
 
   /**
-   * Returns the eventual balance of this market in terms of its registered token.
-   * @return {Promise<number>} eventual balance of this market.
-   */
-  get eventualBalance() {
-    return new Promise((resolve, reject) => {
-      this.instance.methods.getCash()
-        .call()
-        .then((balance) => Number(balance))
-        .then(resolve)
-        .catch(reject);
-    });
-  }
-
-  /**
    * Returns the eventual factor of this market.
    * @returns {Promise<number>}
    */
@@ -122,7 +108,8 @@ export default class Market {
   }
 
   /**
-   * Returns the eventual cash of this market.
+   * Returns the eventual cash of this market corresponding to the
+   * balance of the market on it's token.
    * @return {Promise<number>}
    */
   get eventualCash() {
@@ -224,14 +211,14 @@ export default class Market {
     return new Promise((resolve, reject) => {
       web3.eth.getAccounts()
         .then(([account]) => this.instance.methods.supplyOf(from || account).call())
-        .then((balance) => Number(balance))
+        .then((supplyOf) => Number(supplyOf))
         .then(resolve)
         .catch(reject);
     });
   }
 
   /**
-   * Returns the updated amount according to the chain block number
+   * Returns an updated amount according to the chain block number
    * for this market's token that has been supplied by the caller.
    * @param {string=} from if specified executes the transaction using this account.
    * @return {Promise<number>}
@@ -240,7 +227,38 @@ export default class Market {
     return new Promise((resolve, reject) => {
       web3.eth.getAccounts()
         .then(([account]) => this.instance.methods.updatedSupplyOf(from || account).call())
-        .then((balance) => Number(balance))
+        .then((updatedSupplyOf) => Number(updatedSupplyOf))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns the amount of token's borrowed by the account in this market.
+   * @param {string=} from if specified executes the transaction using this account.
+   * @return {Promise<number>}
+   */
+  borrowBy(from = '') {
+    return new Promise((resolve, reject) => {
+      web3.eth.getAccounts()
+        .then(([account]) => this.instance.methods.borrowBy(from || account).call())
+        .then((borrowBy) => Number(borrowBy))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns an updated amount according to the chain block number
+   * for this market's token that has been borrowed by the caller.
+   * @param {string=} from if specified executes the transaction using this account.
+   * @return {Promise<number>}
+   */
+  updatedBorrowBy(from = '') {
+    return new Promise((resolve, reject) => {
+      web3.eth.getAccounts()
+        .then(([account]) => this.instance.methods.updatedBorrowBy(from || account).call())
+        .then((updatedBorrowBy) => Number(updatedBorrowBy))
         .then(resolve)
         .catch(reject);
     });
