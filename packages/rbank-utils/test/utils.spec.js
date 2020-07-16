@@ -9,7 +9,8 @@ chai.use(chaiAsPromised);
 const { expect } = chai;
 
 describe('Utils module', () => {
-  let controller, deploy;
+  let controller,
+    deploy;
   let user;
   beforeEach(async () => {
     controller = new utils.web3.eth.Contract(ControllerContract.abi);
@@ -18,27 +19,41 @@ describe('Utils module', () => {
     user = user1;
   });
   it('should have a web3 instance tied to localhost', () => {
-    return expect(utils.web3.currentProvider.host).to.eq('http://127.0.0.1:8545');
+    return expect(utils.web3.currentProvider.host)
+      .to
+      .eq('http://127.0.0.1:8545');
   });
   it('should properly send transactions generically', () => {
     return utils.web3.eth.getAccounts()
       .then(([from]) => ([from, deploy.estimateGas({ from })]))
       .then(result => Promise.all(result))
-      .then(([from, gas]) => deploy.send({ from, gas }))
+      .then(([from, gas]) => deploy.send({
+        from,
+        gas,
+      }))
       .then(c => utils.send(c.methods.setCollateralFactor(3)))
       .then(result => {
-        expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
+        expect(result.transactionHash)
+          .to
+          .match(/0x[a-fA-F0-9]{64}/);
       });
   });
   it('should properly send transaction generically specifying the address performing the action', () => {
     return deploy.estimateGas({ from: user })
-      .then(gas => deploy.send({ from: user, gas }))
+      .then(gas => deploy.send({
+        from: user,
+        gas,
+      }))
       .then(c => utils.send(c.methods.setCollateralFactor(3), user))
       .then(result => {
-        expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
+        expect(result.transactionHash)
+          .to
+          .match(/0x[a-fA-F0-9]{64}/);
       });
   });
   it('should get a BigNumber instance', () => {
-    return expect(utils.BN).to.eq(BN);
+    return expect(utils.BN)
+      .to
+      .eq(BN);
   });
 });

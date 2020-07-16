@@ -23,7 +23,10 @@ export const BN = BigNumber;
 
 const internalSend = (signature, from) => new Promise((resolve, reject) => {
   signature.estimateGas({ from })
-    .then((gas) => signature.send({ from, gas }))
+    .then((gas) => signature.send({
+      from,
+      gas,
+    }))
     .then(resolve)
     .catch(reject);
 });

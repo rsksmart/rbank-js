@@ -19,18 +19,29 @@ describe('Core', () => {
   });
   context('Packages independence', () => {
     it('should have access to the controller handler', () => {
-      return expect(rbank.Controller).to.eq(Controller);
+      return expect(rbank.Controller)
+        .to
+        .eq(Controller);
     });
     it('should have access to the market handler', () => {
-      return expect(rbank.Market).to.eq(Market);
+      return expect(rbank.Market)
+        .to
+        .eq(Market);
     });
     it('should have access to the token handler', () => {
-      return expect(rbank.Token).to.match(/Token/);
+      return expect(rbank.Token)
+        .to
+        .match(/Token/);
     });
   });
   context('Operational', () => {
     let controller;
-    let token1, market1, market2, market3, market4, market5;
+    let token1,
+      market1,
+      market2,
+      market3,
+      market4,
+      market5;
     beforeEach(async () => {
       const [owner] = await web3.eth.getAccounts();
 
@@ -38,23 +49,23 @@ describe('Core', () => {
 
       const deployToken1 = token.deploy({
         data: TokenContract.bytecode,
-        arguments: [100000, 'TOK1', 0, 'TOK1'],
+        arguments: [100000, 'TOK1', 0, 'TOK1']
       });
       const deployToken2 = token.deploy({
         data: TokenContract.bytecode,
-        arguments: [100000, 'TOK2', 0, 'TOK2'],
+        arguments: [100000, 'TOK2', 0, 'TOK2']
       });
       const deployToken3 = token.deploy({
         data: TokenContract.bytecode,
-        arguments: [100000, 'TOK3', 0, 'TOK3'],
+        arguments: [100000, 'TOK3', 0, 'TOK3']
       });
       const deployToken4 = token.deploy({
         data: TokenContract.bytecode,
-        arguments: [100000, 'TOK4', 0, 'TOK4'],
+        arguments: [100000, 'TOK4', 0, 'TOK4']
       });
       const deployToken5 = token.deploy({
         data: TokenContract.bytecode,
-        arguments: [100000, 'TOK5', 0, 'TOK5'],
+        arguments: [100000, 'TOK5', 0, 'TOK5']
       });
 
       const gasToken1 = await deployToken1.estimateGas({ from: owner });
@@ -63,11 +74,26 @@ describe('Core', () => {
       const gasToken4 = await deployToken4.estimateGas({ from: owner });
       const gasToken5 = await deployToken5.estimateGas({ from: owner });
 
-      token1 = await deployToken1.send({ from: owner, gas: gasToken1 });
-      const token2 = await deployToken2.send({ from: owner, gas: gasToken2 });
-      const token3 = await deployToken3.send({ from: owner, gas: gasToken3 });
-      const token4 = await deployToken4.send({ from: owner, gas: gasToken4 });
-      const token5 = await deployToken5.send({ from: owner, gas: gasToken5 });
+      token1 = await deployToken1.send({
+        from: owner,
+        gas: gasToken1,
+      });
+      const token2 = await deployToken2.send({
+        from: owner,
+        gas: gasToken2,
+      });
+      const token3 = await deployToken3.send({
+        from: owner,
+        gas: gasToken3,
+      });
+      const token4 = await deployToken4.send({
+        from: owner,
+        gas: gasToken4,
+      });
+      const token5 = await deployToken5.send({
+        from: owner,
+        gas: gasToken5,
+      });
 
       controller = new Controller(await Controller.create());
 
@@ -90,12 +116,16 @@ describe('Core', () => {
       rbank.controller = controller.address;
     });
     it('should create a controller instance assigning the controller address', () => {
-      return expect(rbank.controller.address).to.eq(controller.address);
+      return expect(rbank.controller.address)
+        .to
+        .eq(controller.address);
     });
     it('should create as many instances of markets as markets registered in the controller', () => {
       return rbank.eventualMarkets
         .then(markets => {
-          expect(markets.length).to.eq(4);
+          expect(markets.length)
+            .to
+            .eq(4);
         });
     });
     it('should retrieve the right number of market instance after adding a new market', () => {
@@ -103,19 +133,25 @@ describe('Core', () => {
         .then(() => rbank.controller.addMarket(market5.address))
         .then(() => rbank.eventualMarkets)
         .then(markets => {
-          expect(markets.length).to.eq(5);
+          expect(markets.length)
+            .to
+            .eq(5);
         });
     });
     it('should retrieve a market instance by its address', () => {
       return rbank.eventualMarket(market3.address)
         .then(market => {
-          expect(market.address).to.eq(market3.address);
+          expect(market.address)
+            .to
+            .eq(market3.address);
         });
     });
     it('should retrieve a market instance by its index', () => {
       return rbank.eventualMarket(1)
         .then(market => {
-          expect(market.address).to.eq(market2.address);
+          expect(market.address)
+            .to
+            .eq(market2.address);
         });
     });
     it('should return an error for a non-existent market index', () => {
@@ -125,13 +161,13 @@ describe('Core', () => {
       return expect(rbank.eventualMarket('0xC89Ce4735882C9F0f0FE26686c53074E09B0D550'))
         .to.be.eventually.rejected;
     });
-    it('should return and error with a invalid token address', () => {
+    it('should return false validating a non-existing token address', () => {
       return rbank.marketExistsByToken(controller.address)
         .then((validationResult) => {
           expect(validationResult).to.be.false;
         });
     });
-    it('should validate if a market with a given token address already exists', () => {
+    it('should return true validating an existing token address', () => {
       return rbank.marketExistsByToken(token1._address)
         .then((validationResult) => {
           expect(validationResult).to.be.true;

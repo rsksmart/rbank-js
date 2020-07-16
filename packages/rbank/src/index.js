@@ -34,7 +34,7 @@ export default class Rbank {
 
   /**
    * Returns the list of existing markets.
-   * @return {Promise<Market[]>}
+   * @return {Promise<[Market]>}
    */
   markets() {
     return this.internalController.eventualMarketListSize
@@ -65,7 +65,8 @@ export default class Rbank {
     return new Promise((resolve, reject) => {
       if (typeof id === 'string') {
         this.markets()
-          .then((markets) => markets.filter((market) => market.address === id).pop())
+          .then((markets) => markets.filter((market) => market.address === id)
+            .pop())
           .then((result) => {
             if (result === undefined) {
               throw new Error('There is no market with that address');

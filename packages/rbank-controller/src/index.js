@@ -41,8 +41,7 @@ export default class Controller {
           this.instance.methods.collateralFactor().call(),
         ])
         .then((promises) => Promise.all(promises))
-        .then(([mantissa, collateralFactor]) => Number(collateralFactor
-          / mantissa))
+        .then(([mantissa, collateralFactor]) => Number(collateralFactor / mantissa))
         .then(resolve)
         .catch(reject);
     });
@@ -55,13 +54,12 @@ export default class Controller {
   get eventualLiquidationFactor() {
     return new Promise((resolve, reject) => {
       this.eventualMantissa
-        .then((matissa) => [
-          matissa,
+        .then((mantissa) => [
+          mantissa,
           this.instance.methods.liquidationFactor().call(),
         ])
         .then((promises) => Promise.all(promises))
-        .then(([mantissa, liquidationFactor]) => Number(liquidationFactor
-          / mantissa))
+        .then(([mantissa, liquidationFactor]) => Number(liquidationFactor / mantissa))
         .then(resolve)
         .catch(reject);
     });
@@ -117,8 +115,9 @@ export default class Controller {
   setCollateralFactor(collateralFactor) {
     return new Promise((resolve, reject) => {
       this.eventualMantissa
-        .then((mantissa) => send(this.instance.methods
-          .setCollateralFactor(collateralFactor * mantissa)))
+        .then((mantissa) => send(
+          this.instance.methods.setCollateralFactor(collateralFactor * mantissa),
+        ))
         .then(resolve)
         .catch(reject);
     });
@@ -132,8 +131,9 @@ export default class Controller {
   setLiquidationFactor(liquidationFactor) {
     return new Promise((resolve, reject) => {
       this.eventualMantissa
-        .then((mantissa) => send(this.instance.methods
-          .setLiquidationFactor(liquidationFactor * mantissa)))
+        .then((mantissa) => send(
+          this.instance.methods.setLiquidationFactor(liquidationFactor * mantissa),
+        ))
         .then(resolve)
         .catch(reject);
     });
@@ -180,6 +180,13 @@ export default class Controller {
         .catch(reject);
     });
   }
+
+  /**
+   * Account values
+   * @typedef {Object} AccountValues
+   * @property {number} supplyValue
+   * @property {number} borrowValue
+   */
 
   /**
    * Returns the current supplied and borrowed values for a given account.
@@ -230,16 +237,16 @@ export default class Controller {
 
   /**
    * Returns an address if the markets exists, it would be the market address
-   * otherwise it would be an empty address of zeros.
-   * @param tokenAddress
-   * @return {Promise<string>}
+   * otherwise it throws an error.
+   * @param {string} tokenAddress
+   * @return {Promise<string | Error>}
    */
   getEventualMarketAddressByToken(tokenAddress) {
     return new Promise((resolve, reject) => {
       this.instance.methods.marketsByToken(tokenAddress)
         .call()
         .then((marketAddress) => {
-          if (marketAddress.match(/0x[0]{40}/)) throw new Error('Token address not valid');
+          if (marketAddress.match(/0x[0]{40}/)) throw new Error('Token address not registered');
           return marketAddress;
         })
         .then(resolve)
