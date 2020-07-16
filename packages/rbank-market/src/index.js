@@ -1,4 +1,4 @@
-import { send, web3 } from '@rsksmart/rbank-utils';
+import { send, web3, web3WS } from '@rsksmart/rbank-utils';
 import MarketContract from './Market.json';
 import Token from './token';
 
@@ -19,6 +19,7 @@ export default class Market {
   constructor(address = '') {
     if (!address.match(/0x[a-fA-F0-9]{40}/)) return new Error('Missing address');
     this.instance = new web3.eth.Contract(MarketContract.abi, address);
+    this.ws = new web3WS.eth.Contract(MarketContract.abi, address);
     this.instanceAddress = address;
     this.token = this.instance.methods.token()
       .call()
@@ -76,7 +77,7 @@ export default class Market {
 
   get events() {
     return {
-      supply: (cb) => this.instance.events.Supply({ fromBlock: 'latest' }, cb),
+      supply: (cb) => this.ws.events.Supply({ fromBlock: 'latest' }, cb),
     };
   }
 

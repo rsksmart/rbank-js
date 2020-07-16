@@ -5,7 +5,7 @@ import FaucetTokenContract from '../../../dependencies/DeFiProt/build/contracts/
 import ControllerContract from '../../../dependencies/DeFiProt/build/contracts/Controller.json';
 import Market from '../src';
 
-const web3 = new Web3('ws://localhost:8545');
+const web3 = new Web3('http://127.0.0.1:8545');
 
 chai.use(chaiAsPromised);
 

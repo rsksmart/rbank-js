@@ -1,6 +1,19 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import Web3 from 'web3';
 
+const localWS = 'ws://127.0.0.1:8545';
+
+const getWSProvider = () => {
+  try {
+    switch (Web3.givenProvider.chainId) {
+      default:
+        return localWS;
+    }
+  } catch (e) {
+    return localWS;
+  }
+};
+
 /**
  * A blockchain transaction response.
  * @typedef {Object} TXResult
@@ -11,11 +24,21 @@ import Web3 from 'web3';
  * network by default.
  * @type {Web3}
  */
-export const web3 = new Web3(Web3.givenProvider || 'ws://127.0.0.1:8545');
+export const web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:8545');
+
+/**
+ * Returns a globally available we3 websocket instance connected to the correspondent http given
+ * provider or a ganache local network by default.
+ * @type {Web3}
+ */
+export const web3WS = new Web3(getWSProvider());
 
 const internalSend = (signature, from) => new Promise((resolve, reject) => {
   signature.estimateGas({ from })
-    .then((gas) => signature.send({ from, gas }))
+    .then((gas) => signature.send({
+      from,
+      gas,
+    }))
     .then(resolve)
     .catch(reject);
 });
