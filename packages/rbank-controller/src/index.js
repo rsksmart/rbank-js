@@ -35,9 +35,13 @@ export default class Controller {
    */
   get eventualCollateralFactor() {
     return new Promise((resolve, reject) => {
-      this.instance.methods.collateralFactor()
-        .call()
-        .then((collateralFactor) => Number(collateralFactor))
+      this.eventualMantissa
+        .then((mantissa) => [
+          mantissa,
+          this.instance.methods.collateralFactor().call(),
+        ])
+        .then((promises) => Promise.all(promises))
+        .then(([mantissa, collateralFactor]) => Number(collateralFactor / mantissa))
         .then(resolve)
         .catch(reject);
     });
@@ -49,9 +53,13 @@ export default class Controller {
    */
   get eventualLiquidationFactor() {
     return new Promise((resolve, reject) => {
-      this.instance.methods.liquidationFactor()
-        .call()
-        .then((liquidationFactor) => Number(liquidationFactor))
+      this.eventualMantissa
+        .then((mantissa) => [
+          mantissa,
+          this.instance.methods.liquidationFactor().call(),
+        ])
+        .then((promises) => Promise.all(promises))
+        .then(([mantissa, liquidationFactor]) => Number(liquidationFactor / mantissa))
         .then(resolve)
         .catch(reject);
     });
@@ -86,13 +94,30 @@ export default class Controller {
   }
 
   /**
+   * Returns the eventual mantissa.
+   * @return {Promise<number>} eventual controller mantissa.
+   */
+  get eventualMantissa() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.MANTISSA()
+        .call()
+        .then((mantissa) => Number(mantissa))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
    * Sets the collateral factor for this controller.
    * @param {number} collateralFactor
    * @return {Promise<TXResult>}
    */
   setCollateralFactor(collateralFactor) {
     return new Promise((resolve, reject) => {
-      send(this.instance.methods.setCollateralFactor(collateralFactor))
+      this.eventualMantissa
+        .then((mantissa) => send(
+          this.instance.methods.setCollateralFactor(collateralFactor * mantissa),
+        ))
         .then(resolve)
         .catch(reject);
     });
@@ -105,7 +130,10 @@ export default class Controller {
    */
   setLiquidationFactor(liquidationFactor) {
     return new Promise((resolve, reject) => {
-      send(this.instance.methods.setLiquidationFactor(liquidationFactor))
+      this.eventualMantissa
+        .then((mantissa) => send(
+          this.instance.methods.setLiquidationFactor(liquidationFactor * mantissa),
+        ))
         .then(resolve)
         .catch(reject);
     });
@@ -202,6 +230,25 @@ export default class Controller {
     return new Promise((resolve, reject) => {
       this.instance.methods.marketList(marketIdx)
         .call()
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns an address if the markets exists, it would be the market address
+   * otherwise it throws an error.
+   * @param {string} tokenAddress
+   * @return {Promise<string | Error>}
+   */
+  getEventualMarketAddressByToken(tokenAddress) {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.marketsByToken(tokenAddress)
+        .call()
+        .then((marketAddress) => {
+          if (marketAddress.match(/0x[0]{40}/)) throw new Error('Token address not registered');
+          return marketAddress;
+        })
         .then(resolve)
         .catch(reject);
     });

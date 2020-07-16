@@ -1,5 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import Web3 from 'web3';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import BigNumber from 'bignumber.js';
 
 /**
  * A blockchain transaction response.
@@ -13,9 +15,18 @@ import Web3 from 'web3';
  */
 export const web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:8545');
 
+/**
+ * Returns a globally available Big Number library
+ * @type {BigNumber}
+ */
+export const BN = BigNumber;
+
 const internalSend = (signature, from) => new Promise((resolve, reject) => {
   signature.estimateGas({ from })
-    .then((gas) => signature.send({ from, gas }))
+    .then((gas) => signature.send({
+      from,
+      gas,
+    }))
     .then(resolve)
     .catch(reject);
 });
