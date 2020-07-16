@@ -17,7 +17,8 @@ describe('Market handler', () => {
   let token1;
   let market1;
   let market1Address;
-  let owner, alice;
+  let owner,
+    alice;
   beforeEach(async () => {
     [owner, alice] = await web3.eth.getAccounts();
     const controllerContract = new web3.eth.Contract(ControllerContract.abi);
@@ -56,6 +57,13 @@ describe('Market handler', () => {
     await marketPriceSignature.send({
       from: owner,
       gas: marketPriceGas
+    });
+  });
+  context('Token availability', () => {
+    it('should have access to the Token handler', () => {
+      return expect(Market.Token.toString())
+        .to
+        .match(/Token/);
     });
   });
   context('Creation', () => {
@@ -117,25 +125,18 @@ describe('Market handler', () => {
             .eq(controller._address);
         });
     });
-    it('should have the same borrow rate from its creation', () => {
-      return market1.eventualBaseBorrowRate
-        .then(baseBorrowRate => {
-          expect(baseBorrowRate)
-            .to
-            .eq(10);
-        });
-    });
   });
   context('Operational', () => {
     let owner,
       user1,
       user2,
       user3,
-      user4;
+      user4,
+      user5;
     let token2;
     let market2;
     beforeEach(async () => {
-      [owner, user1, user2, user3, user4] = await web3.eth.getAccounts();
+      [owner, user1, user2, user3, user4, user5] = await web3.eth.getAccounts();
 
       const deployToken2 = token.deploy({
         data: FaucetTokenContract.bytecode,
@@ -166,6 +167,14 @@ describe('Market handler', () => {
         gas: market2PriceGas
       });
       await market2.setControllerAddress(controller._address);
+    });
+    it('should return the FACTOR constant of a market', () => {
+      return market1.eventualFactor
+        .then((factor) => {
+          expect(factor)
+            .to
+            .eq(1e18);
+        });
     });
     it('should throws an error if there is not enough eventualBalance to supply into a market', () => {
       return expect(market1.supply(250, user2)).to.be.eventually.rejected;
@@ -227,15 +236,6 @@ describe('Market handler', () => {
           expect(market1.borrow(100, user2)).to.be.eventually.rejected;
         });
     });
-    it('should return the eventualBalance of a supplied market', () => {
-      return market1.supply(250, user1)
-        .then(() => market1.eventualBalance)
-        .then(balance => {
-          expect(balance)
-            .to
-            .eq(250);
-        });
-    });
     it('should allow a second user borrowing from what was supplied by a first one', () => {
       return market1.supply(250, user1)
         .then(() => market2.supply(250, user2))
@@ -244,35 +244,153 @@ describe('Market handler', () => {
           expect(result.transactionHash)
             .to
             .match(/0x[a-fA-F0-9]{64}/);
-          return market1.eventualBalance;
+          return market1.eventualCash;
         })
-        .then(balance => {
-          expect(balance)
+        .then((cash) => {
+          expect(cash)
             .to
             .eq(230);
         });
     });
+    it('should return the value that the user borrowed from the market', () => {
+      return market1.supply(250, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(20, user2))
+        .then(() => market1.borrowBy(user2))
+        .then((borrowBy) => {
+          expect(borrowBy)
+            .to
+            .eq(20);
+        });
+    });
+    it('should get the borrow rate depending on the market borrow transactions', () => {
+      return market1.supply(250, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(20, user2))
+        .then((result) => {
+          expect(result.transactionHash)
+            .to
+            .match(/0x[a-fA-F0-9]{64}/);
+          return market1.eventualBorrowRate;
+        })
+        .then((borrowRate) => {
+          expect(borrowRate)
+            .to
+            .eq(10.00008);
+        });
+    });
+    it('should return the updated total supplies of a market', () => {
+      return market1.supply(250, user1)
+        .then(() => token1.methods.allocateTo(user5, 1000)
+          .send({ from: user1 }))
+        .then(() => market1.supply(1000, user5))
+        .then((result) => {
+          expect(result.transactionHash)
+            .to
+            .match(/0x[a-fA-F0-9]{64}/);
+          return market1.eventualUpdatedTotalSupply;
+        })
+        .then((updatedTotalSupply) => {
+          expect(updatedTotalSupply)
+            .to
+            .eq(1250);
+        });
+    });
+    it('should return the updated total borrows of a market', () => {
+      return market1.supply(250, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(50, user2))
+        .then((result) => {
+          expect(result.transactionHash)
+            .to
+            .match(/0x[a-fA-F0-9]{64}/);
+          return market1.eventualUpdatedTotalBorrows;
+        })
+        .then((updatedTotalBorrow) => {
+          expect(updatedTotalBorrow)
+            .to
+            .eq(50);
+        });
+    });
+    it('should return the cash of a market', () => {
+      return market1.supply(250, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(50, user2))
+        .then(result => {
+          expect(result.transactionHash)
+            .to
+            .match(/0x[a-fA-F0-9]{64}/);
+          return market1.eventualCash;
+        })
+        .then((cash) => {
+          expect(cash)
+            .to
+            .eq(200);
+        });
+    });
+    it('should allow a second user to pay a borrowed amount', () => {
+      return market1.supply(500, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(50, user2))
+        .then(() => market1.payBorrow(10, user2))
+        .then((result) => {
+          expect(result.transactionHash)
+            .to
+            .match(/0x[a-fA-F0-9]{64}/);
+        });
+    });
+    it('should allow a first user to redeem tokens previously supplied into the market', () => {
+      return market1.supply(500, user1)
+        .then(() => market1.redeem(500, user1))
+        .then((result) => {
+          expect(result.transactionHash)
+            .to
+            .match(/0x[a-fA-F0-9]{64}/);
+        });
+    });
+    it('should throw an error on redeem if there is not enough supplied amount from the user', async () => {
+      await market1.supply(500, user1);
+      return expect(market1.redeem(600, user1))
+        .to
+        .be
+        .eventually
+        .rejectedWith('There was an error redeeming your tokens');
+    });
+    it('should allow anyone to get the updatedSupplyOf value of any account');
+    it('should allow anyone to get the updatedBorrowedBy value of any account');
   });
   context('Events', () => {
     it('should get the supply event for market1 when anyone is supplying', () => {
       const allocateToSignature = token1.methods.allocateTo(alice, 1000);
       market1.events.supply()
         .on('data', ({ returnValues: { user, amount } }) => {
-          expect(user).to.eq(alice);
-          expect(Number(amount)).to.eq(250);
+          expect(user)
+            .to
+            .eq(alice);
+          expect(Number(amount))
+            .to
+            .eq(250);
         });
-      return allocateToSignature.estimateGas({from: alice})
-        .then((gas) => allocateToSignature.send({from: alice, gas}))
+      return allocateToSignature.estimateGas({ from: alice })
+        .then((gas) => allocateToSignature.send({
+          from: alice,
+          gas
+        }))
         .then(() => {
           const signature = token1.methods.approve(market1.address, 250);
-          return [signature, signature.estimateGas({from: alice})];
+          return [signature, signature.estimateGas({ from: alice })];
         })
         .then((result) => Promise.all(result))
-        .then(([signature, gas]) => signature.send({from: alice, gas}))
+        .then(([signature, gas]) => signature.send({
+          from: alice,
+          gas
+        }))
         .then(() => market1.supply(250, alice))
         .then((tx) => {
-          expect(tx.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
-        })
+          expect(tx.transactionHash)
+            .to
+            .match(/0x[a-fA-F0-9]{64}/);
+        });
     });
   });
 });

@@ -1,5 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import Web3 from 'web3';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import BigNumber from 'bignumber.js';
 
 const localWS = 'ws://127.0.0.1:8545';
 
@@ -32,6 +34,12 @@ export const web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:8545');
  * @type {Web3}
  */
 export const web3WS = new Web3(getWSProvider());
+
+/**
+ * Returns a globally available Big Number library
+ * @type {BigNumber}
+ */
+export const BN = BigNumber;
 
 const internalSend = (signature, from) => new Promise((resolve, reject) => {
   signature.estimateGas({ from })

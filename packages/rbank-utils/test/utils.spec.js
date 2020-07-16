@@ -2,6 +2,7 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as utils from '../src';
 import ControllerContract from '../../../dependencies/DeFiProt/build/contracts/Controller.json';
+import BN from 'bignumber.js';
 
 chai.use(chaiAsPromised);
 
@@ -33,7 +34,7 @@ describe('Utils module', () => {
       .then(result => Promise.all(result))
       .then(([from, gas]) => deploy.send({
         from,
-        gas
+        gas,
       }))
       .then(c => utils.send(c.methods.setCollateralFactor(3)))
       .then(result => {
@@ -46,7 +47,7 @@ describe('Utils module', () => {
     return deploy.estimateGas({ from: user })
       .then(gas => deploy.send({
         from: user,
-        gas
+        gas,
       }))
       .then(c => utils.send(c.methods.setCollateralFactor(3), user))
       .then(result => {
@@ -54,5 +55,10 @@ describe('Utils module', () => {
           .to
           .match(/0x[a-fA-F0-9]{64}/);
       });
+  });
+  it('should get a BigNumber instance', () => {
+    return expect(utils.BN)
+      .to
+      .eq(BN);
   });
 });

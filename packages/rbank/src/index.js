@@ -13,6 +13,7 @@ export default class Rbank {
   constructor() {
     this.Controller = Controller;
     this.Market = Market;
+    this.Token = Market.Token;
     this.internalController = null;
   }
 
@@ -31,6 +32,10 @@ export default class Rbank {
     this.markets();
   }
 
+  /**
+   * Returns the list of existing markets.
+   * @return {Promise<[Market]>}
+   */
   markets() {
     return this.internalController.eventualMarketListSize
       .then((marketListSize) => _.range(marketListSize))
@@ -60,7 +65,8 @@ export default class Rbank {
     return new Promise((resolve, reject) => {
       if (typeof id === 'string') {
         this.markets()
-          .then((markets) => markets.filter((market) => market.address === id).pop())
+          .then((markets) => markets.filter((market) => market.address === id)
+            .pop())
           .then((result) => {
             if (result === undefined) {
               throw new Error('There is no market with that address');
@@ -80,6 +86,19 @@ export default class Rbank {
         })
         .then(resolve)
         .catch(reject);
+    });
+  }
+
+  /**
+   * Returns if the market with the given token address already exists.
+   * @param tokenAddress
+   * @return {Promise<boolean>}
+   */
+  marketExistsByToken(tokenAddress) {
+    return new Promise((resolve) => {
+      this.internalController.getEventualMarketAddressByToken(tokenAddress)
+        .then(() => resolve(true))
+        .catch(() => resolve(false));
     });
   }
 }
