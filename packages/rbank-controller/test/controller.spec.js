@@ -451,10 +451,10 @@ describe('Controller handler', () => {
             .eq(3000);
         });
     });
-    it('should return 0 as health factor for users accounts that have not interacted yet', () => {
+    it('should return 1 as health factor for users accounts that have not interacted yet', () => {
       return controller.getAccountHealth(acc1)
         .then((healthFactor) => {
-          expect(healthFactor).to.eq(0);
+          expect(healthFactor).to.eq(1);
         })
     });
     it('should return the health factor of a given account', () => {

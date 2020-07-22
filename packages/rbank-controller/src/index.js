@@ -240,7 +240,7 @@ export default class Controller {
         .then((sigmoidHealth) => (Number(sigmoidHealth) - 0.731059)
           / (0.999999 - 0.731059))
         .then((healthPercentage) => (healthPercentage <= 0
-          ? 0 : Number(healthPercentage.toFixed(6))))
+          ? 1 : Number(healthPercentage.toFixed(6))))
         .then(resolve)
         .catch(reject);
     });
