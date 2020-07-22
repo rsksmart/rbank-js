@@ -127,6 +127,9 @@ export default class Market {
   get events() {
     return {
       supply: (cb) => this.ws.events.Supply({ fromBlock: 'latest' }, cb),
+      borrow: (cb) => this.ws.events.Borrow({ fromBlock: 'latest' }, cb),
+      redeem: (cb) => this.ws.events.Redeem({ fromBlock: 'latest' }, cb),
+      payBorrow: (cb) => this.ws.events.PayBorrow({ fromBlock: 'latest' }, cb),
     };
   }
 
