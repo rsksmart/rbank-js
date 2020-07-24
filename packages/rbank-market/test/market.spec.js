@@ -361,7 +361,24 @@ describe('Market handler', () => {
         .eventually
         .rejectedWith('There was an error redeeming your tokens');
     });
-    it('should allow anyone to get the updatedSupplyOf value of any account');
-    it('should allow anyone to get the updatedBorrowedBy value of any account');
+    it('should allow anyone to get the updatedSupplyOf value of any account', () => {
+      return market1.supply(500, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(50, user2))
+        .then(() => market1.payBorrow(50, user2))
+        .then(() => market1.updatedSupplyOf(user1))
+        .then((updatedSupply) => {
+          expect(updatedSupply).to.eq(500);
+        });
+    });
+    it('should allow anyone to get the updatedBorrowedBy value of any account', () => {
+      return market1.supply(500, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(50, user2))
+        .then(() => market1.updatedBorrowBy(user2))
+        .then((updatedSupply) => {
+          expect(updatedSupply).to.eq(50);
+        });
+    });
   });
 });
