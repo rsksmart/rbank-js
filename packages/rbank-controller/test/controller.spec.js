@@ -47,7 +47,7 @@ describe('Controller handler', () => {
 
     const deployMarket1 = await market.deploy({
       data: MarketContract.bytecode,
-      arguments: [token1._address, 5e14]
+      arguments: [token1._address, 2, 1e6, 20]
     });
     const gasMarket1 = await deployMarket1.estimateGas({ from: owner });
     market1 = await deployMarket1.send({
@@ -57,7 +57,7 @@ describe('Controller handler', () => {
 
     const deployMarket2 = await market.deploy({
       data: MarketContract.bytecode,
-      arguments: [token2._address, 5e14]
+      arguments: [token2._address, 2, 1e6, 20]
     });
     const gasMarket2 = await deployMarket2.estimateGas({ from: owner });
     market2 = await deployMarket2.send({
@@ -200,6 +200,8 @@ describe('Controller handler', () => {
       acc3;
     beforeEach(async () => {
       [owner, acc1, acc2, acc3] = await web3.eth.getAccounts();
+      await controller.setCollateralFactor(1);
+      await controller.setLiquidationFactor(0.5);
     });
     it('should show zero values for the account for users that have not interacted yet', () => {
       return controller.getAccountValues(acc1)
@@ -448,6 +450,126 @@ describe('Controller handler', () => {
             .to
             .eq(3000);
         });
+    });
+    it('should return 1 as health factor for users accounts that have not interacted yet', () => {
+      return controller.getAccountHealth(acc1)
+        .then((healthFactor) => {
+          expect(healthFactor).to.eq(1);
+        })
+    });
+    it('should return the health factor of a given account', () => {
+      return controller.addMarket(market1._address)
+        .then(() => {
+          const signature = market1.methods.setController(controller.address);
+          const eventualEstimatedGas = signature.estimateGas({ from: owner });
+          return [signature, eventualEstimatedGas];
+        })
+        .then(result => Promise.all(result))
+        .then(([signature, gas]) => signature.send({
+          from: owner,
+          gas
+        }))
+        .then(() => {
+          const signature = token1.methods.allocateTo(acc1, 500);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc1 });
+          return [signature, eventualEstimatedGas];
+        })
+        .then(result => Promise.all(result))
+        .then(([signature, gas]) => signature.send({
+          from: acc1,
+          gas
+        }))
+        .then(() => {
+          const signature = token1.methods.approve(market1._address, 500);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc1 });
+          return [signature, eventualEstimatedGas];
+        })
+        .then(result => Promise.all(result))
+        .then(([signature, gas]) => signature.send({
+          from: acc1,
+          gas
+        }))
+        .then(() => {
+          const signature = market1.methods.supply(500);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc1 });
+          return [signature, eventualEstimatedGas];
+        })
+        .then(result => Promise.all(result))
+        .then(([signature, gas]) => signature.send({
+          from: acc1,
+          gas
+        }))
+        .then(() => controller.setMarketPrice(market1._address, 10))
+        .then(() => controller.eventualMarketPrice(market1._address))
+        .then(marketPrice => {
+          expect(marketPrice)
+            .to
+            .eq(10);
+          return true;
+        })
+        .then(() => controller.addMarket(market2._address))
+        .then(() => {
+          const signature = market2.methods.setController(controller.address);
+          const eventualEstimatedGas = signature.estimateGas({ from: owner });
+          return [signature, eventualEstimatedGas];
+        })
+        .then(result => Promise.all(result))
+        .then(([signature, gas]) => signature.send({
+          from: owner,
+          gas
+        }))
+        .then(() => {
+          const signature = token2.methods.allocateTo(acc2, 1000);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc2 });
+          return [signature, eventualEstimatedGas];
+        })
+        .then(result => Promise.all(result))
+        .then(([signature, gas]) => signature.send({
+          from: acc2,
+          gas
+        }))
+        .then(() => {
+          const signature = token2.methods.approve(market2._address, 1000);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc2 });
+          return [signature, eventualEstimatedGas];
+        })
+        .then(result => Promise.all(result))
+        .then(([signature, gas]) => signature.send({
+          from: acc2,
+          gas
+        }))
+        .then(() => {
+          const signature = market2.methods.supply(1000);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc2 });
+          return [signature, eventualEstimatedGas];
+        })
+        .then(result => Promise.all(result))
+        .then(([signature, gas]) => signature.send({
+          from: acc2,
+          gas
+        }))
+        .then(() => controller.setMarketPrice(market2._address, 10))
+        .then(() => controller.eventualMarketPrice(market2._address))
+        .then(marketPrice => {
+          expect(marketPrice)
+            .to
+            .eq(10);
+          return true;
+        })
+        .then(() => {
+          const signature = market2.methods.borrow(100);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc1 });
+          return [signature, eventualEstimatedGas];
+        })
+        .then(result => Promise.all(result))
+        .then(([signature, gas]) => signature.send({
+          from: acc1,
+          gas
+        }))
+        .then(() => controller.getAccountHealth(acc1))
+        .then((healthFactor) => {
+          expect(healthFactor).to.eq(0.871926);
+        })
     });
   });
 });
