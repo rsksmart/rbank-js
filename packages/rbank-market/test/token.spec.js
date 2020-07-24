@@ -24,7 +24,7 @@ describe('Token handler', () => {
     [owner, user] = await web3.eth.getAccounts();
     const gas = await deploy.estimateGas({ from: owner });
     token1 = await deploy.send({ from: owner, gas });
-    market = new Market(await Market.create(token1._address, 10));
+    market = new Market(await Market.create(token1._address, 2, 1e6, 20));
     await token1.methods.allocateTo(user, 1000).send({ from: owner });
     await token1.methods.allocateTo(owner, 1000).send({ from: owner });
   });

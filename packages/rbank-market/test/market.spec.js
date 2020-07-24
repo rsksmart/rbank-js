@@ -40,7 +40,7 @@ describe('Market handler', () => {
       from: owner,
       gas: gasToken1
     });
-    market1Address = await Market.create(token1._address, 10);
+    market1Address = await Market.create(token1._address, 2, 1e6, 20);
     market1 = new Market(market1Address);
     await market1.setControllerAddress(controller._address);
 
@@ -79,7 +79,7 @@ describe('Market handler', () => {
         .to.be.eventually.rejected;
     });
     it('should returns the market contract address after creation', () => {
-      return Market.create(token1._address, 10)
+      return Market.create(token1._address, 2, 1e6, 20)
         .then(marketAddress => {
           expect(marketAddress)
             .to
@@ -100,12 +100,19 @@ describe('Market handler', () => {
         .an('error');
     });
     it('should return a valid market instance after passing a valid market address', () => {
-      return Market.create(token1._address, 10)
+      return Market.create(token1._address, 2, 1e6, 20)
         .then(marketAddress => {
           expect(new Market(marketAddress))
             .not
             .be
             .an('error');
+        });
+    });
+    it('should return a the blocks per year of a market', () => {
+      return Market.create(token1._address, 2, 1e6, 20)
+        .then((marketAddress) => new Market(marketAddress).eventualBlocksPerYear)
+        .then((blocksPerYear) => {
+          expect(blocksPerYear).to.eq(1e6);
         });
     });
     it('should be linked to a controller', () => {
@@ -145,7 +152,7 @@ describe('Market handler', () => {
         from: owner,
         gas: gasToken2
       });
-      market2 = new Market(await Market.create(token2._address, 10));
+      market2 = new Market(await Market.create(token2._address, 2, 1e6, 20));
 
       await token1.methods.allocateTo(user1, 500)
         .send({ from: user1 });
@@ -274,7 +281,7 @@ describe('Market handler', () => {
         .then((borrowRate) => {
           expect(borrowRate)
             .to
-            .eq(10.00008);
+            .eq(3.6);
         });
     });
     it('should return the updated total supplies of a market', () => {

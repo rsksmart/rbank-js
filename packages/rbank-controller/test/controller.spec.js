@@ -47,7 +47,7 @@ describe('Controller handler', () => {
 
     const deployMarket1 = await market.deploy({
       data: MarketContract.bytecode,
-      arguments: [token1._address, 5e14]
+      arguments: [token1._address, 2, 1e6, 20]
     });
     const gasMarket1 = await deployMarket1.estimateGas({ from: owner });
     market1 = await deployMarket1.send({
@@ -57,7 +57,7 @@ describe('Controller handler', () => {
 
     const deployMarket2 = await market.deploy({
       data: MarketContract.bytecode,
-      arguments: [token2._address, 5e14]
+      arguments: [token2._address, 2, 1e6, 20]
     });
     const gasMarket2 = await deployMarket2.estimateGas({ from: owner });
     market2 = await deployMarket2.send({

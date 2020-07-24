@@ -47,6 +47,20 @@ export default class Market {
   }
 
   /**
+   * Returns an eventual blocks per year of this market.
+   * @return {Promise<string>} eventual blocks per year.
+   */
+  get eventualBlocksPerYear() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.blocksPerYear()
+        .call()
+        .then((blocksPerYear) => Number(blocksPerYear))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
    * Returns an eventual borrow rate, it varies depending on the total borrows
    * and cash of this market.
    * @return {Promise<number>} eventual market's base borrow rate.
@@ -56,11 +70,14 @@ export default class Market {
       this.eventualFactor
         .then((factor) => [
           factor,
+          this.eventualBlocksPerYear,
           this.instance.methods.borrowRatePerBlock().call(),
         ])
         .then((promises) => Promise.all(promises))
-        .then(([factor, borrowRatePerBlock]) => new BN(borrowRatePerBlock)
-          .div(new BN(factor)).toNumber())
+        .then(([factor, blocksPerYear, borrowRatePerBlock]) => {
+          return new BN(borrowRatePerBlock).times(new BN(100 * blocksPerYear))
+            .div(new BN(factor)).toNumber();
+        })
         .then(resolve)
         .catch(reject);
     });
@@ -272,18 +289,29 @@ export default class Market {
    * Fails if the token address is not well formed or if the address does not correspond to an
    * actual ERC20 complied smart contract.
    * @param {string} tokenAddress on chain deployed ERC20 complied token address.
-   * @param {number} baseBorrowRate new market's base borrow rate.
+   * @param baseBorrowAnnualRate
+   * @param blocksPerYear
+   * @param utilizationRateFraction
    * @return {Promise<string>} on chain deployed new market's address.
    */
-  static create(tokenAddress = '', baseBorrowRate) {
+  static async create(tokenAddress = '', baseBorrowAnnualRate, blocksPerYear, utilizationRateFraction) {
     return new Promise((resolve, reject) => {
-      if (!tokenAddress.match(/0x[a-fA-F0-9]{40}/) || baseBorrowRate === undefined) {
-        reject(new Error('Either the token address or the base borrow rate are missing'));
+      const factor = 1e18;
+      if (!tokenAddress.match(/0x[a-fA-F0-9]{40}/)
+        || baseBorrowAnnualRate === undefined
+        || blocksPerYear === undefined
+        || utilizationRateFraction === undefined) {
+        reject(new Error('Either the token address or the annual rate or the block per year or utilization rate are missing'));
       }
       const market = new web3.eth.Contract(MarketContract.abi);
       const deploy = market.deploy({
         data: MarketContract.bytecode,
-        arguments: [tokenAddress, new BN(baseBorrowRate).times(new BN(1e18))],
+        arguments: [
+          tokenAddress,
+          new BN(baseBorrowAnnualRate).div(new BN(100)).times(new BN(factor)),
+          blocksPerYear,
+          new BN(utilizationRateFraction).div(new BN(100)).times(new BN(factor)),
+        ],
       });
       web3.eth.getAccounts()
         .then(([from]) => [from, deploy.estimateGas({ from })])
