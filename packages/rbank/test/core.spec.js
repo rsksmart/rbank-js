@@ -97,11 +97,11 @@ describe('Core', () => {
 
       controller = new Controller(await Controller.create());
 
-      market1 = new Market(await Market.create(token1._address, 10));
-      market2 = new Market(await Market.create(token2._address, 10));
-      market3 = new Market(await Market.create(token3._address, 10));
-      market4 = new Market(await Market.create(token4._address, 10));
-      market5 = new Market(await Market.create(token5._address, 10));
+      market1 = new Market(await Market.create(token1._address, 2, 1e6, 20));
+      market2 = new Market(await Market.create(token2._address, 2, 1e6, 20));
+      market3 = new Market(await Market.create(token3._address, 2, 1e6, 20));
+      market4 = new Market(await Market.create(token4._address, 2, 1e6, 20));
+      market5 = new Market(await Market.create(token5._address, 2, 1e6, 20));
 
       await controller.addMarket(market1.address);
       await controller.addMarket(market2.address);
