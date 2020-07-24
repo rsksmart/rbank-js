@@ -1,7 +1,6 @@
 import { send, web3 } from '@rsksmart/rbank-utils';
 import ControllerContract from './Controller.json';
 
-
 /**
  * A blockchain transaction response.
  * @typedef {Object} TXResult
@@ -10,7 +9,7 @@ import ControllerContract from './Controller.json';
 /**
  * Controller handler.
  */
-export default class Index {
+export default class Controller {
   /**
    * Controller handler constructor.
    * @param {string} address On chain `Controller` deployed address.
@@ -36,9 +35,13 @@ export default class Index {
    */
   get eventualCollateralFactor() {
     return new Promise((resolve, reject) => {
-      this.instance.methods.collateralFactor()
-        .call()
-        .then((collateralFactor) => Number(collateralFactor))
+      this.eventualMantissa
+        .then((mantissa) => [
+          mantissa,
+          this.instance.methods.collateralFactor().call(),
+        ])
+        .then((promises) => Promise.all(promises))
+        .then(([mantissa, collateralFactor]) => Number(collateralFactor / mantissa))
         .then(resolve)
         .catch(reject);
     });
@@ -50,9 +53,13 @@ export default class Index {
    */
   get eventualLiquidationFactor() {
     return new Promise((resolve, reject) => {
-      this.instance.methods.liquidationFactor()
-        .call()
-        .then((liquidationFactor) => Number(liquidationFactor))
+      this.eventualMantissa
+        .then((mantissa) => [
+          mantissa,
+          this.instance.methods.liquidationFactor().call(),
+        ])
+        .then((promises) => Promise.all(promises))
+        .then(([mantissa, liquidationFactor]) => Number(liquidationFactor / mantissa))
         .then(resolve)
         .catch(reject);
     });
@@ -74,13 +81,43 @@ export default class Index {
   }
 
   /**
+   * Returns the eventual controller owner.
+   * @return {Promise<string>} eventual controller owner.
+   */
+  get eventualOwner() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.owner()
+        .call()
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns the eventual mantissa.
+   * @return {Promise<number>} eventual controller mantissa.
+   */
+  get eventualMantissa() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.MANTISSA()
+        .call()
+        .then((mantissa) => Number(mantissa))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
    * Sets the collateral factor for this controller.
    * @param {number} collateralFactor
    * @return {Promise<TXResult>}
    */
   setCollateralFactor(collateralFactor) {
     return new Promise((resolve, reject) => {
-      send(this.instance.methods.setCollateralFactor(collateralFactor))
+      this.eventualMantissa
+        .then((mantissa) => send(
+          this.instance.methods.setCollateralFactor(collateralFactor * mantissa),
+        ))
         .then(resolve)
         .catch(reject);
     });
@@ -93,7 +130,10 @@ export default class Index {
    */
   setLiquidationFactor(liquidationFactor) {
     return new Promise((resolve, reject) => {
-      send(this.instance.methods.setLiquidationFactor(liquidationFactor))
+      this.eventualMantissa
+        .then((mantissa) => send(
+          this.instance.methods.setLiquidationFactor(liquidationFactor * mantissa),
+        ))
         .then(resolve)
         .catch(reject);
     });
@@ -182,6 +222,31 @@ export default class Index {
   }
 
   /**
+   * Returns the health factor for a given account according to its current
+   * state in all the markets.
+   * @param {string} account
+   * @return {Promise<number>} eventual health factor
+   */
+  getAccountHealth(account) {
+    return new Promise((resolve, reject) => {
+      this.eventualMantissa
+        .then((mantissa) => [
+          mantissa,
+          this.instance.methods.getAccountHealth(account).call(),
+        ])
+        .then((promises) => Promise.all(promises))
+        .then(([mantissa, accountHealth]) => Number(accountHealth) / mantissa)
+        .then((accountHealth) => 1 / (1 + Math.exp(-accountHealth)))
+        .then((sigmoidHealth) => (Number(sigmoidHealth) - 0.731059)
+          / (0.999999 - 0.731059))
+        .then((healthPercentage) => (healthPercentage <= 0
+          ? 1 : Number(healthPercentage.toFixed(6))))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
    * Returns the address of the market registered at certain index.
    * @param {number} marketIdx Market index position
    * @return {Promise<string>}
@@ -190,6 +255,47 @@ export default class Index {
     return new Promise((resolve, reject) => {
       this.instance.methods.marketList(marketIdx)
         .call()
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns an address if the markets exists, it would be the market address
+   * otherwise it throws an error.
+   * @param {string} tokenAddress
+   * @return {Promise<string | Error>}
+   */
+  getEventualMarketAddressByToken(tokenAddress) {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.marketsByToken(tokenAddress)
+        .call()
+        .then((marketAddress) => {
+          if (marketAddress.match(/0x[0]{40}/)) throw new Error('Token address not registered');
+          return marketAddress;
+        })
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Validates either the current account or an specified one is the owner of this controller.
+   * @param {string=} from the account used to determine property of this controller.
+   * @return {Promise<boolean>} eventual answer of property validation.
+   */
+  eventualIsOwner(from = '') {
+    return new Promise((resolve, reject) => {
+      web3.eth.getAccounts()
+        .then(([account]) => [
+          account,
+          this.instance.methods.owner().call(),
+        ])
+        .then((results) => Promise.all(results))
+        .then(([account, registeredOwner]) => {
+          if (from) { return from === registeredOwner; }
+          return account === registeredOwner;
+        })
         .then(resolve)
         .catch(reject);
     });

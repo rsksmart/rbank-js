@@ -181,128 +181,30 @@ You might want to have `ganache-cli` installed globally.
 $ npm i -g ganache-cli
 ```
 
+#### Preparation prior to the testing
+You have to guarantee having the specific version of smart contracts, simply do as follows:
+
+```bash
+$ cd dependencies/DeFiProt
+$ git pull origin/master
+```
+
+Sometimes it would be necessary to guarantee having everything built up from scratch. In order to
+have the project ready to be tested do as follows:
+
+```bash
+$ npm i
+$ npm run deploy:controller
+$ npm run deploy:market
+$ npm run bootstrap
+``` 
+
+These commands, install npm dependencies, compile smart contracts and copy the resulting `json`
+files into the respective packages, link all the internal packages together.
+
 #### Running the tests
 You should be located at this project root and run the tests.
 
 ```bash
 $ npm test
-```
-
-#### Current coverage results
-```
-  Utils module
-    ✓ should have a web3 instance tied to localhost
-    ✓ should properly send transactions generically (179ms)
-    ✓ should properly send transaction generically specifying the address performing the action (132ms)
-
-  3 passing (358ms)
-
-----------|---------|----------|---------|---------|-------------------
-File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
-----------|---------|----------|---------|---------|-------------------
-All files |     100 |      100 |     100 |     100 |                   
- index.js |     100 |      100 |     100 |     100 |                   
-----------|---------|----------|---------|---------|-------------------
-
-  Market handler
-    Creation
-
-
-  Controller handler
-    Initialization
-      ✓ should throw an error no token address is set
-      ✓ should get an error when initializing without controller address
-      ✓ should get a new instance using the controller registered address
-      ✓ should throw an error if no base borrow rate is set
-      ✓ should get zero collateral factor
-      ✓ should throw an error if an empty token address is set
-      ✓ should get zero collateral factor
-      ✓ should throw an error if it gets a no-token address (50ms)
-      ✓ should allow the controller owner to set a new collateral factor (160ms)
-      ✓ should returns the market contract address after creation (128ms)
-      ✓ should allow the controller owner to set a new liquidation factor (122ms)
-    Market management
-      ✓ should get the instance smart contract address
-    Initialization
-      ✓ should have zero markets in the beginning
-      ✓ should throw an error if no instance address is passed
-      ✓ should allow the controller owner to add new markets (274ms)
-      ✓ should return a valid market instance after passing a valid market address (153ms)
-      ✓ should tell how many markets are registered (185ms)
-      ✓ should be linked to a controller (172ms)
-      ✓ should retrieve the address of a registered market upon idx selection (139ms)
-    DeFi Operations
-      ✓ should have the same borrow rate from its creation
-    Operational
-      ✓ should show zero values for the account for users that have not interacted yet
-      ✓ should throws an error if there is not enough eventualBalance to supply into a market (106ms)
-      ✓ should show updated values for users who have borrowed and supplied (1492ms)
-      ✓ should allow the current and funded user to supply into the market (357ms)
-      ✓ should calculate the liquidity for a given account (1475ms)
-
-
-  13 passing (13s)
-
-----------|---------|----------|---------|---------|-------------------
-File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
-----------|---------|----------|---------|---------|-------------------
-All files |     100 |      100 |     100 |     100 |                   
- index.js |     100 |      100 |     100 |     100 |                   
-----------|---------|----------|---------|---------|-------------------
-      ✓ should allow any user to supply token to the market (121ms)
-      ✓ should show zero as eventualBalance for an account that has not supplied tokens yet
-      ✓ should show the value supplied by a user in the market (135ms)
-      ✓ should show the value supplied by the current account in the market (143ms)
-      ✓ should throw an error when borrowing from a market that has not been supplied
-      ✓ should throw an error when a user wants to borrow but has no collateral (126ms)
-      ✓ should return the eventualBalance of a supplied market (153ms)
-      ✓ should allow a second user borrowing from what was supplied by a first one (414ms)
-      - should allow a second user to pay a borrowed amount
-      - should allow a first user to redeem tokens previously supplied into the market
-      - should throw an error on redeem if there is not enough supplied amount from the user
-      - should allow anyone to get the updatedSupplyOf value of any account
-      - should allow anyone to get the updatedBorrowedBy value of any account
-      - should allow anyone to get the current Market eventualBalance in its token terms
-
-  Token handler
-    Initialization
-      ✓ should throw an error if no token address is passed
-      ✓ should get a new Token instance using the token address (79ms)
-    Operational
-      ✓ should allow a token holder to authorize an address to perform transfers on their behalf (41ms)
-      ✓ should allow a specified token holder to authorize an address to perform transfers on their behalf (48ms)
-
-
-  24 passing (21s)
-  6 pending
-
-----------|---------|----------|---------|---------|-------------------
-File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
-----------|---------|----------|---------|---------|-------------------
-All files |     100 |    97.37 |     100 |     100 |                   
- index.js |     100 |    96.43 |     100 |     100 | 114               
- token.js |     100 |      100 |     100 |     100 |                   
-----------|---------|----------|---------|---------|-------------------
-
-  Core
-    Packages independence
-      ✓ should have access to the controller handler
-      ✓ should have access to the market handler
-    Operational
-      ✓ should create a controller instance assigning the controller address
-      ✓ should create as many instances of markets as markets registered in the controller (49ms)
-      ✓ should retrieve a market instance by its address (49ms)
-      ✓ should retrieve a market instance by its index (45ms)
-      ✓ should return an error for a non-existent market index (48ms)
-      ✓ should return an error for a non-registered market address (50ms)
-
-
-  8 passing (8s)
-
-----------|---------|----------|---------|---------|-------------------
-File      | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
-----------|---------|----------|---------|---------|-------------------
-All files |     100 |      100 |     100 |     100 |                   
- index.js |     100 |      100 |     100 |     100 |                   
-----------|---------|----------|---------|---------|-------------------
 ```
