@@ -42,7 +42,12 @@ describe('Market handler', () => {
       from: owner,
       gas: gasToken1
     });
-    market1Address = await Market.create(token1._address, 2, 1e6, 20);
+    market1Address = await Market.create(
+      token1._address,
+      2,
+      1e6,
+      20,
+    );
     market1 = new Market(market1Address);
     await market1.setControllerAddress(controller._address);
 
@@ -114,7 +119,9 @@ describe('Market handler', () => {
       return Market.create(token1._address, 2, 1e6, 20)
         .then((marketAddress) => new Market(marketAddress).eventualBlocksPerYear)
         .then((blocksPerYear) => {
-          expect(blocksPerYear).to.eq(1e6);
+          expect(blocksPerYear)
+            .to
+            .eq(1e6);
         });
     });
     it('should be linked to a controller', () => {
@@ -154,7 +161,12 @@ describe('Market handler', () => {
         from: owner,
         gas: gasToken2
       });
-      market2 = new Market(await Market.create(token2._address, 2, 1e6, 20));
+      market2 = new Market(await Market.create(
+        token2._address,
+        2,
+        1e6,
+        20,
+      ));
 
       await token1.methods.allocateTo(user1, 500)
         .send({ from: user1 });
@@ -370,7 +382,9 @@ describe('Market handler', () => {
         .then(() => market1.payBorrow(50, user2))
         .then(() => market1.updatedSupplyOf(user1))
         .then((updatedSupply) => {
-          expect(updatedSupply).to.eq(500);
+          expect(updatedSupply)
+            .to
+            .eq(500);
         });
     });
     it('should allow anyone to get the updatedBorrowedBy value of any account', () => {
@@ -379,15 +393,17 @@ describe('Market handler', () => {
         .then(() => market1.borrow(50, user2))
         .then(() => market1.updatedBorrowBy(user2))
         .then((updatedSupply) => {
-          expect(updatedSupply).to.eq(50);
+          expect(updatedSupply)
+            .to
+            .eq(50);
         });
     });
   });
   context('Events', () => {
     let owner,
-        alice,
-        bob,
-        charlie;
+      alice,
+      bob,
+      charlie;
     let token2;
     let gas;
     let market2;
@@ -403,7 +419,12 @@ describe('Market handler', () => {
         from: owner,
         gas: gasToken2
       });
-      const market2Address = await Market.create(token2._address, 10);
+      const market2Address = await Market.create(
+        token2._address,
+        10,
+        1e6,
+        20,
+      );
       market2 = new Market(market2Address);
 
       await market2.setControllerAddress(controller._address);
@@ -422,11 +443,17 @@ describe('Market handler', () => {
       });
       const allocateToSignature = token1.methods.allocateTo(alice, 1000);
       gas = await allocateToSignature.estimateGas({ from: alice });
-      await allocateToSignature.send({ from: alice, gas });
+      await allocateToSignature.send({
+        from: alice,
+        gas
+      });
 
       const allocateToSignatureBob = token2.methods.allocateTo(bob, 1000);
       gas = await allocateToSignatureBob.estimateGas({ from: bob });
-      await allocateToSignatureBob.send({ from: bob, gas });
+      await allocateToSignatureBob.send({
+        from: bob,
+        gas
+      });
 
     });
     it('should get the supply event for market1 when anyone is supplying', () => {
@@ -454,62 +481,62 @@ describe('Market handler', () => {
     });
     it('should get the borrow event for market1 when anyone is borrowing', () => {
       market1.events.borrow()
-          .on('data', ({ returnValues: { user, amount } }) => {
-            expect(user)
-                .to
-                .eq(bob);
-            expect(Number(amount))
-                .to
-                .eq(100);
-          });
+        .on('data', ({ returnValues: { user, amount } }) => {
+          expect(user)
+            .to
+            .eq(bob);
+          expect(Number(amount))
+            .to
+            .eq(100);
+        });
       return market1.supply(250, alice)
-          .then(() => market2.supply(250, bob))
-          .then(() => market1.borrow(100, bob))
-          .then((tx) => {
-            expect(tx.transactionHash)
-                .to
-                .match(/0x[a-fA-F0-9]{64}/);
-          })
+        .then(() => market2.supply(250, bob))
+        .then(() => market1.borrow(100, bob))
+        .then((tx) => {
+          expect(tx.transactionHash)
+            .to
+            .match(/0x[a-fA-F0-9]{64}/);
+        });
     });
-    it('should get the pay borrow event for market1 when anyone pays a borrow',() => {
+    it('should get the pay borrow event for market1 when anyone pays a borrow', () => {
       market1.events.payBorrow()
-          .on('data', ({ returnValues: { user, amount } }) => {
-            expect(user)
-                .to
-                .eq(bob);
-            expect(Number(amount))
-                .to
-                .eq(50);
-          });
+        .on('data', ({ returnValues: { user, amount } }) => {
+          expect(user)
+            .to
+            .eq(bob);
+          expect(Number(amount))
+            .to
+            .eq(50);
+        });
       return market1.supply(250, alice)
-          .then(() => market2.supply(250, bob))
-          .then(() => market1.borrow(100, bob))
-          .then(() => market1.payBorrow(50,bob))
-          .then((tx) => {
-            expect(tx.transactionHash)
-                .to
-                .match(/0x[a-fA-F0-9]{64}/);
-          });
+        .then(() => market2.supply(250, bob))
+        .then(() => market1.borrow(100, bob))
+        .then(() => market1.payBorrow(50, bob))
+        .then((tx) => {
+          expect(tx.transactionHash)
+            .to
+            .match(/0x[a-fA-F0-9]{64}/);
+        });
     });
     it('should get the redeem event for market1 when anyone redeem tokens', () => {
       market1.events.redeem()
-          .on('data', ({ returnValues: { user, amount } }) => {
-            expect(user)
-                .to
-                .eq(alice);
-            expect(Number(amount))
-                .to
-                .eq(50);
-          });
+        .on('data', ({ returnValues: { user, amount } }) => {
+          expect(user)
+            .to
+            .eq(alice);
+          expect(Number(amount))
+            .to
+            .eq(50);
+        });
       return market1.supply(250, alice)
-          .then(() => market2.supply(250, bob))
-          .then(() => market1.borrow(100, bob))
-          .then(() => market1.redeem(50,alice))
-          .then((tx) => {
-            expect(tx.transactionHash)
-                .to
-                .match(/0x[a-fA-F0-9]{64}/);
-          });
+        .then(() => market2.supply(250, bob))
+        .then(() => market1.borrow(100, bob))
+        .then(() => market1.redeem(50, alice))
+        .then((tx) => {
+          expect(tx.transactionHash)
+            .to
+            .match(/0x[a-fA-F0-9]{64}/);
+        });
     });
   });
 });
