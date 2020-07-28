@@ -72,12 +72,14 @@ export default class Market {
         .then((factor) => [
           factor,
           this.eventualBlocksPerYear,
-          this.instance.methods.borrowRatePerBlock().call(),
+          this.instance.methods.borrowRatePerBlock()
+            .call()
         ])
         .then((promises) => Promise.all(promises))
         .then(([factor, blocksPerYear, borrowRatePerBlock]) => {
           return new BN(borrowRatePerBlock).times(new BN(100 * blocksPerYear))
-            .div(new BN(factor)).toNumber();
+            .div(new BN(factor))
+            .toNumber();
         })
         .then(resolve)
         .catch(reject);
@@ -146,7 +148,7 @@ export default class Market {
       supply: (cb) => this.ws.events.Supply({ fromBlock: 'latest' }, cb),
       borrow: (cb) => this.ws.events.Borrow({ fromBlock: 'latest' }, cb),
       redeem: (cb) => this.ws.events.Redeem({ fromBlock: 'latest' }, cb),
-      payBorrow: (cb) => this.ws.events.PayBorrow({ fromBlock: 'latest' }, cb),
+      payBorrow: (cb) => this.ws.events.PayBorrow({ fromBlock: 'latest' }, cb)
     };
   }
 
@@ -240,7 +242,8 @@ export default class Market {
   supplyOf(from = '') {
     return new Promise((resolve, reject) => {
       web3.eth.getAccounts()
-        .then(([account]) => this.instance.methods.supplyOf(from || account).call())
+        .then(([account]) => this.instance.methods.supplyOf(from || account)
+          .call())
         .then((supplyOf) => Number(supplyOf))
         .then(resolve)
         .catch(reject);
@@ -256,7 +259,8 @@ export default class Market {
   updatedSupplyOf(from = '') {
     return new Promise((resolve, reject) => {
       web3.eth.getAccounts()
-        .then(([account]) => this.instance.methods.updatedSupplyOf(from || account).call())
+        .then(([account]) => this.instance.methods.updatedSupplyOf(from || account)
+          .call())
         .then((updatedSupplyOf) => Number(updatedSupplyOf))
         .then(resolve)
         .catch(reject);
@@ -271,7 +275,8 @@ export default class Market {
   borrowBy(from = '') {
     return new Promise((resolve, reject) => {
       web3.eth.getAccounts()
-        .then(([account]) => this.instance.methods.borrowBy(from || account).call())
+        .then(([account]) => this.instance.methods.borrowBy(from || account)
+          .call())
         .then((borrowBy) => Number(borrowBy))
         .then(resolve)
         .catch(reject);
@@ -287,7 +292,8 @@ export default class Market {
   updatedBorrowBy(from = '') {
     return new Promise((resolve, reject) => {
       web3.eth.getAccounts()
-        .then(([account]) => this.instance.methods.updatedBorrowBy(from || account).call())
+        .then(([account]) => this.instance.methods.updatedBorrowBy(from || account)
+          .call())
         .then((updatedBorrowBy) => Number(updatedBorrowBy))
         .then(resolve)
         .catch(reject);
@@ -299,12 +305,17 @@ export default class Market {
    * Fails if the token address is not well formed or if the address does not correspond to an
    * actual ERC20 complied smart contract.
    * @param {string} tokenAddress on chain deployed ERC20 complied token address.
-   * @param baseBorrowAnnualRate
-   * @param blocksPerYear
-   * @param utilizationRateFraction
+   * @param {number} baseBorrowAnnualRate
+   * @param {number} blocksPerYear
+   * @param {number} utilizationRateFraction
    * @return {Promise<string>} on chain deployed new market's address.
    */
-  static async create(tokenAddress = '', baseBorrowAnnualRate, blocksPerYear, utilizationRateFraction) {
+  static async create(
+    tokenAddress = '',
+    baseBorrowAnnualRate,
+    blocksPerYear,
+    utilizationRateFraction,
+  ) {
     return new Promise((resolve, reject) => {
       const factor = 1e18;
       if (!tokenAddress.match(/0x[a-fA-F0-9]{40}/)
@@ -318,17 +329,19 @@ export default class Market {
         data: MarketContract.bytecode,
         arguments: [
           tokenAddress,
-          new BN(baseBorrowAnnualRate).div(new BN(100)).times(new BN(factor)),
+          new BN(baseBorrowAnnualRate).div(new BN(100))
+            .times(new BN(factor)),
           blocksPerYear,
-          new BN(utilizationRateFraction).div(new BN(100)).times(new BN(factor)),
-        ],
+          new BN(utilizationRateFraction).div(new BN(100))
+            .times(new BN(factor))
+        ]
       });
       web3.eth.getAccounts()
         .then(([from]) => [from, deploy.estimateGas({ from })])
         .then((result) => Promise.all(result))
         .then(([from, gas]) => deploy.send({
           from,
-          gas,
+          gas
         }))
         // eslint-disable-next-line no-underscore-dangle
         .then((instance) => instance._address)
