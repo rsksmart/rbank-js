@@ -1,4 +1,6 @@
-import { BN, send, web3, web3WS } from '@rsksmart/rbank-utils';
+import {
+  BN, send, web3, web3WS,
+} from '@rsksmart/rbank-utils';
 import MarketContract from './Market.json';
 import Token from './token';
 
@@ -295,6 +297,29 @@ export default class Market {
         .then(([account]) => this.instance.methods.updatedBorrowBy(from || account)
           .call())
         .then((updatedBorrowBy) => Number(updatedBorrowBy))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Liquidate the collateral for a given borrower based on the amount of its
+   * debt provided .
+   * @param {string} borrower account on the market.
+   * @param {number} amount debt on market amount to pay.
+   * @param {string} collateralMarket collateral market address on platform.
+   * @param {string=} from if specified executes the transaction using this account.
+   * @return {Promise<TXResult>}
+   */
+  liquidateBorrow(borrower, amount, collateralMarket, from = '') {
+    return new Promise((resolve, reject) => {
+      this.token
+        .then((token) => token.approve(this.instanceAddress, amount, from))
+        .then(() => send(this.instance.methods.liquidateBorrow(
+          borrower,
+          amount,
+          collateralMarket,
+        ), from))
         .then(resolve)
         .catch(reject);
     });
