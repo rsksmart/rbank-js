@@ -579,5 +579,12 @@ describe('Market handler', () => {
             .match(/0x[a-fA-F0-9]{64}/);
         });
     });
+    it('should get the past borrow event for market1 if anyone did a borrow', () => {
+      return market1.supply(250, alice)
+          .then(() => market2.supply(250, bob))
+          .then(() => market1.borrow(100, bob))
+          .then(() => market1.getPastEvents('Borrow', 0))
+          .then(([{ returnValues: { user }}]) => expect(user).to.eq(bob));
+    });
   });
 });

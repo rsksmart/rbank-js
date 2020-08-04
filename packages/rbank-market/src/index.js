@@ -75,14 +75,12 @@ export default class Market {
           factor,
           this.eventualBlocksPerYear,
           this.instance.methods.borrowRatePerBlock()
-            .call()
+            .call(),
         ])
         .then((promises) => Promise.all(promises))
-        .then(([factor, blocksPerYear, borrowRatePerBlock]) => {
-          return new BN(borrowRatePerBlock).times(new BN(100 * blocksPerYear))
-            .div(new BN(factor))
-            .toNumber();
-        })
+        .then(([factor, blocksPerYear, borrowRatePerBlock]) => new BN(borrowRatePerBlock).times(new BN(100 * blocksPerYear))
+          .div(new BN(factor))
+          .toNumber())
         .then(resolve)
         .catch(reject);
     });
@@ -145,13 +143,35 @@ export default class Market {
     });
   }
 
+  /**
+   * Generates a market subscription to a event.
+   * @return {EventEmiter}
+   */
   get events() {
     return {
       supply: (cb) => this.ws.events.Supply({ fromBlock: 'latest' }, cb),
       borrow: (cb) => this.ws.events.Borrow({ fromBlock: 'latest' }, cb),
       redeem: (cb) => this.ws.events.Redeem({ fromBlock: 'latest' }, cb),
-      payBorrow: (cb) => this.ws.events.PayBorrow({ fromBlock: 'latest' }, cb)
+      payBorrow: (cb) => this.ws.events.PayBorrow({ fromBlock: 'latest' }, cb),
     };
+  }
+
+  /**
+   * Gets the provided past events from the given block.
+   * @param {string} eventName On chain controller's address
+   * @param {number} fromBlock On chain controller's address
+   * @return {Promise<[Event]>} a Promise to an array of events occurred on the past
+   */
+  getPastEvents(eventName, fromBlock) {
+    return new Promise((resolve, reject) => {
+      this.instance.getPastEvents(eventName,
+        {
+          fromBlock,
+          toBlock: 'latest',
+        })
+        .then(resolve)
+        .catch(reject);
+    });
   }
 
   /**
@@ -358,15 +378,15 @@ export default class Market {
             .times(new BN(factor)),
           blocksPerYear,
           new BN(utilizationRateFraction).div(new BN(100))
-            .times(new BN(factor))
-        ]
+            .times(new BN(factor)),
+        ],
       });
       web3.eth.getAccounts()
         .then(([from]) => [from, deploy.estimateGas({ from })])
         .then((result) => Promise.all(result))
         .then(([from, gas]) => deploy.send({
           from,
-          gas
+          gas,
         }))
         // eslint-disable-next-line no-underscore-dangle
         .then((instance) => instance._address)
