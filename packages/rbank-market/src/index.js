@@ -144,6 +144,14 @@ export default class Market {
   }
 
   /**
+   * Returns the eventual token handler instance of this market
+   * @return {Promise<Token>}
+   */
+  get eventualToken() {
+    return this.token;
+  }
+
+  /**
    * Generates a market subscription to a event.
    * @return {EventEmiter}
    */
