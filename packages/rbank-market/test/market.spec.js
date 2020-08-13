@@ -507,6 +507,13 @@ describe('Market handler', () => {
         gas
       });
 
+      const allocateToSignatureCharlie = token2.methods.allocateTo(charlie, 1000);
+      gas = await allocateToSignatureCharlie.estimateGas({ from: charlie });
+      await allocateToSignatureCharlie.send({
+        from: charlie,
+        gas
+      });
+
       const allocateToSignatureBob = token2.methods.allocateTo(bob, 1000);
       gas = await allocateToSignatureBob.estimateGas({ from: bob });
       await allocateToSignatureBob.send({
@@ -605,6 +612,18 @@ describe('Market handler', () => {
         .then(([{ returnValues: { user } }]) => expect(user)
           .to
           .eq(bob));
+    });
+    it('Should return the past events filtered by an account if its needed ', () => {
+      return market1.supply(250, alice)
+          .then(() => market2.supply(250, bob))
+          .then(() => market2.supply(250, charlie))
+          .then(() => market1.borrow(50, bob))
+          .then(() => market1.borrow(50, bob))
+          .then(() => market1.borrow(50, charlie))
+          .then(() => market1.borrow(50, charlie))
+          .then(() => market1.getPastEvents('Borrow', 0, { user: charlie }))
+          .then((events) => events
+              .forEach(({ returnValues: { user } }) => expect(user).to.eq(charlie)));
     });
   });
 });

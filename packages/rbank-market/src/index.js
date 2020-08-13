@@ -168,12 +168,14 @@ export default class Market {
    * Gets the provided past events from the given block.
    * @param {string} eventName On chain controller's address
    * @param {number} fromBlock On chain controller's address
+   * @param {Object} filter used for bring filtered events based on its attributes
    * @return {Promise<[Event]>} a Promise to an array of events occurred on the past
    */
-  getPastEvents(eventName, fromBlock) {
+  getPastEvents(eventName, fromBlock, filter = {}) {
     return new Promise((resolve, reject) => {
       this.instance.getPastEvents(eventName,
         {
+          filter,
           fromBlock,
           toBlock: 'latest',
         })
