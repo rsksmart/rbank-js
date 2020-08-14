@@ -625,5 +625,31 @@ describe('Market handler', () => {
           .then((events) => events
               .forEach(({ returnValues: { user } }) => expect(user).to.eq(charlie)));
     });
+    it('Should return all past events of a given market', () => {
+      market1.events.allEvents()
+          .on('data', ({ returnValues: { user, amount } }) => {
+            if (user === bob) expect(Number(amount))
+                .to
+                .eq(60);
+            if (user === charlie) expect(Number(amount))
+                .to
+                .eq(50);
+            if (user === alice) expect(Number(amount))
+                .to
+                .eq(250);
+          });
+      return market1.supply(250, alice)
+          .then(() => market2.supply(250, bob))
+          .then(() => market2.supply(250, charlie))
+          .then(() => market1.borrow(60, bob))
+          .then(() => market1.borrow(60, bob))
+          .then(() => market1.borrow(50, charlie))
+          .then(() => market1.borrow(50, charlie))
+          .then((tx) => {
+            expect(tx.transactionHash)
+                .to
+                .match(/0x[a-fA-F0-9]{64}/);
+          });
+    });
   });
 });

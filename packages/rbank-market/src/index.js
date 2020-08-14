@@ -78,7 +78,11 @@ export default class Market {
             .call(),
         ])
         .then((promises) => Promise.all(promises))
-        .then(([factor, blocksPerYear, borrowRatePerBlock]) => new BN(borrowRatePerBlock).times(new BN(100 * blocksPerYear))
+        .then(([
+          factor,
+          blocksPerYear,
+          borrowRatePerBlock]) => new BN(borrowRatePerBlock)
+          .times(new BN(100 * blocksPerYear))
           .div(new BN(factor))
           .toNumber())
         .then(resolve)
@@ -161,6 +165,8 @@ export default class Market {
       borrow: (cb) => this.ws.events.Borrow({ fromBlock: 'latest' }, cb),
       redeem: (cb) => this.ws.events.Redeem({ fromBlock: 'latest' }, cb),
       payBorrow: (cb) => this.ws.events.PayBorrow({ fromBlock: 'latest' }, cb),
+      allEvents: (cb) => this.ws.events
+        .allEvents({ fromBlock: 'latest' }, cb),
     };
   }
 
