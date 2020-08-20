@@ -161,10 +161,14 @@ export default class Market {
    */
   get events() {
     return {
-      supply: (cb) => this.ws.events.Supply({ fromBlock: 'latest' }, cb),
-      borrow: (cb) => this.ws.events.Borrow({ fromBlock: 'latest' }, cb),
-      redeem: (cb) => this.ws.events.Redeem({ fromBlock: 'latest' }, cb),
-      payBorrow: (cb) => this.ws.events.PayBorrow({ fromBlock: 'latest' }, cb),
+      supply: (filter = {}, fromBlock = 'latest', cb) => this.ws
+        .events.Supply({ filter, fromBlock }, cb),
+      borrow: (filter = {}, fromBlock = 'latest', cb) => this.ws
+        .events.Borrow({ filter, fromBlock }, cb),
+      redeem: (filter = {}, fromBlock = 'latest', cb) => this.ws
+        .events.Redeem({ filter, fromBlock }, cb),
+      payBorrow: (filter = {}, fromBlock = 'latest', cb) => this.ws
+        .events.PayBorrow({ filter, fromBlock }, cb),
       allEvents: (cb) => this.ws.events
         .allEvents({ fromBlock: 'latest' }, cb),
     };
