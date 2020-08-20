@@ -66,7 +66,7 @@ export default class Market {
   /**
    * Returns an eventual borrow rate, it varies depending on the total borrows
    * and cash of this market.
-   * @return {Promise<number>} eventual market's base borrow rate.
+   * @return {Promise<number>} eventual market's borrow rate.
    */
   get eventualBorrowRate() {
     return new Promise((resolve, reject) => {
@@ -78,9 +78,32 @@ export default class Market {
             .call(),
         ])
         .then((promises) => Promise.all(promises))
-        .then(([factor, blocksPerYear, borrowRatePerBlock]) => new BN(borrowRatePerBlock).times(new BN(100 * blocksPerYear))
+        .then(([
+          factor,
+          blocksPerYear,
+          borrowRatePerBlock,
+        ]) => new BN(borrowRatePerBlock).times(new BN(100 * blocksPerYear))
           .div(new BN(factor))
           .toNumber())
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns an eventual initial borrow rate set for the market.
+   * @return {Promise<number>} eventual market's base borrow rate.
+   */
+  get eventualBaseBorrowRate() {
+    return new Promise((resolve, reject) => {
+      this.eventualFactor
+        .then((factor) => Promise.all([
+          factor,
+          this.eventualBlocksPerYear,
+          this.instance.methods.baseBorrowRate().call(),
+        ]))
+        .then(([factor, blocksPerYear, baseBorrowRate]) => new BN(baseBorrowRate)
+          .times(new BN(100 * blocksPerYear)).div(new BN(factor)).toNumber())
         .then(resolve)
         .catch(reject);
     });
@@ -325,6 +348,25 @@ export default class Market {
         .then(([account]) => this.instance.methods.updatedBorrowBy(from || account)
           .call())
         .then((updatedBorrowBy) => Number(updatedBorrowBy))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns the earnings of an account on this market.
+   * for this market's token that has been borrowed by the caller.
+   * @param {string=} from if specified executes the transaction using this account.
+   * @return {Promise<number>}
+   */
+  eventualAccountEarnings(from = '') {
+    return new Promise((resolve, reject) => {
+      web3.eth.getAccounts()
+        .then(([account]) => Promise.all([
+          this.instance.methods.updatedSupplyOf(from || account).call(),
+          this.instance.methods.supplyOf(from || account).call(),
+        ]))
+        .then(([updatedSupplyOf, supplyOf]) => Number(updatedSupplyOf - supplyOf))
         .then(resolve)
         .catch(reject);
     });

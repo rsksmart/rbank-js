@@ -304,6 +304,22 @@ describe('Market handler', () => {
             .eq(3.6);
         });
     });
+    it('should get the initial borrow rate of the market', () => {
+      return market1.supply(250, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(20, user2))
+        .then((result) => {
+          expect(result.transactionHash)
+            .to
+            .match(/0x[a-fA-F0-9]{64}/);
+          return market1.eventualBaseBorrowRate;
+        })
+        .then((borrowRate) => {
+          expect(borrowRate)
+            .to
+            .eq(2);
+        });
+    });
     it('should return the updated total supplies of a market', () => {
       return market1.supply(250, user1)
         .then(() => token1.methods.allocateTo(user5, 1000)
@@ -398,8 +414,8 @@ describe('Market handler', () => {
         .then(() => market2.supply(250, user2))
         .then(() => market1.borrow(50, user2))
         .then(() => market1.updatedBorrowBy(user2))
-        .then((updatedSupply) => {
-          expect(updatedSupply)
+        .then((updatedBorrow) => {
+          expect(updatedBorrow)
             .to
             .eq(50);
         });
@@ -455,6 +471,20 @@ describe('Market handler', () => {
           expect(result.transactionHash)
             .to
             .match(/0x[a-fA-F0-9]{64}/);
+        });
+    });
+    it('should return the earnings of an account in the market', () => {
+      return market1.supply(250, user1)
+        .then(() => market2.supply(250, user2))
+        .then(() => market1.borrow(100, user2))
+        .then(() => Promise.all([
+          market1.supplyOf(user1),
+          market1.updatedSupplyOf(user1)
+        ]))
+        .then(([supplyOf, updatedSupplyOf]) => market1
+          .eventualAccountEarnings(user1))
+        .then((accountEarnings) => {
+          expect(accountEarnings).to.eq(0);
         });
     });
   });
