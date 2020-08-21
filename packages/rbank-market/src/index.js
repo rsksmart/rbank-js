@@ -1,4 +1,6 @@
-import { BN, send, web3, web3WS } from '@rsksmart/rbank-utils';
+import {
+  BN, send, web3, web3WS,
+} from '@rsksmart/rbank-utils';
 import MarketContract from './Market.json';
 import Token from './token';
 
@@ -64,7 +66,7 @@ export default class Market {
   /**
    * Returns an eventual borrow rate, it varies depending on the total borrows
    * and cash of this market.
-   * @return {Promise<number>} eventual market's base borrow rate.
+   * @return {Promise<number>} eventual market's borrow rate.
    */
   get eventualBorrowRate() {
     return new Promise((resolve, reject) => {
@@ -72,13 +74,36 @@ export default class Market {
         .then((factor) => [
           factor,
           this.eventualBlocksPerYear,
-          this.instance.methods.borrowRatePerBlock().call(),
+          this.instance.methods.borrowRatePerBlock()
+            .call(),
         ])
         .then((promises) => Promise.all(promises))
-        .then(([factor, blocksPerYear, borrowRatePerBlock]) => {
-          return new BN(borrowRatePerBlock).times(new BN(100 * blocksPerYear))
-            .div(new BN(factor)).toNumber();
-        })
+        .then(([
+          factor,
+          blocksPerYear,
+          borrowRatePerBlock,
+        ]) => new BN(borrowRatePerBlock).times(new BN(100 * blocksPerYear))
+          .div(new BN(factor))
+          .toNumber())
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns an eventual initial borrow rate set for the market.
+   * @return {Promise<number>} eventual market's base borrow rate.
+   */
+  get eventualBaseBorrowRate() {
+    return new Promise((resolve, reject) => {
+      this.eventualFactor
+        .then((factor) => Promise.all([
+          factor,
+          this.eventualBlocksPerYear,
+          this.instance.methods.baseBorrowRate().call(),
+        ]))
+        .then(([factor, blocksPerYear, baseBorrowRate]) => new BN(baseBorrowRate)
+          .times(new BN(100 * blocksPerYear)).div(new BN(factor)).toNumber())
         .then(resolve)
         .catch(reject);
     });
@@ -141,13 +166,51 @@ export default class Market {
     });
   }
 
+  /**
+   * Returns the eventual token handler instance of this market
+   * @return {Promise<Token>}
+   */
+  get eventualToken() {
+    return this.token;
+  }
+
+  /**
+   * Generates a market subscription to a event.
+   * @return {EventEmiter}
+   */
   get events() {
     return {
-      supply: (cb) => this.ws.events.Supply({ fromBlock: 'latest' }, cb),
-      borrow: (cb) => this.ws.events.Borrow({ fromBlock: 'latest' }, cb),
-      redeem: (cb) => this.ws.events.Redeem({ fromBlock: 'latest' }, cb),
-      payBorrow: (cb) => this.ws.events.PayBorrow({ fromBlock: 'latest' }, cb),
+      supply: (filter = {}, fromBlock = 'latest', cb) => this.ws
+        .events.Supply({ filter, fromBlock }, cb),
+      borrow: (filter = {}, fromBlock = 'latest', cb) => this.ws
+        .events.Borrow({ filter, fromBlock }, cb),
+      redeem: (filter = {}, fromBlock = 'latest', cb) => this.ws
+        .events.Redeem({ filter, fromBlock }, cb),
+      payBorrow: (filter = {}, fromBlock = 'latest', cb) => this.ws
+        .events.PayBorrow({ filter, fromBlock }, cb),
+      allEvents: (cb) => this.ws.events
+        .allEvents({ fromBlock: 'latest' }, cb),
     };
+  }
+
+  /**
+   * Gets the provided past events from the given block.
+   * @param {string} eventName On chain controller's address
+   * @param {number} fromBlock On chain controller's address
+   * @param {Object} filter used for bring filtered events based on its attributes
+   * @return {Promise<[Event]>} a Promise to an array of events occurred on the past
+   */
+  getPastEvents(eventName, fromBlock, filter = {}) {
+    return new Promise((resolve, reject) => {
+      this.instance.getPastEvents(eventName,
+        {
+          filter,
+          fromBlock,
+          toBlock: 'latest',
+        })
+        .then(resolve)
+        .catch(reject);
+    });
   }
 
   /**
@@ -240,7 +303,8 @@ export default class Market {
   supplyOf(from = '') {
     return new Promise((resolve, reject) => {
       web3.eth.getAccounts()
-        .then(([account]) => this.instance.methods.supplyOf(from || account).call())
+        .then(([account]) => this.instance.methods.supplyOf(from || account)
+          .call())
         .then((supplyOf) => Number(supplyOf))
         .then(resolve)
         .catch(reject);
@@ -256,7 +320,8 @@ export default class Market {
   updatedSupplyOf(from = '') {
     return new Promise((resolve, reject) => {
       web3.eth.getAccounts()
-        .then(([account]) => this.instance.methods.updatedSupplyOf(from || account).call())
+        .then(([account]) => this.instance.methods.updatedSupplyOf(from || account)
+          .call())
         .then((updatedSupplyOf) => Number(updatedSupplyOf))
         .then(resolve)
         .catch(reject);
@@ -271,7 +336,8 @@ export default class Market {
   borrowBy(from = '') {
     return new Promise((resolve, reject) => {
       web3.eth.getAccounts()
-        .then(([account]) => this.instance.methods.borrowBy(from || account).call())
+        .then(([account]) => this.instance.methods.borrowBy(from || account)
+          .call())
         .then((borrowBy) => Number(borrowBy))
         .then(resolve)
         .catch(reject);
@@ -287,8 +353,51 @@ export default class Market {
   updatedBorrowBy(from = '') {
     return new Promise((resolve, reject) => {
       web3.eth.getAccounts()
-        .then(([account]) => this.instance.methods.updatedBorrowBy(from || account).call())
+        .then(([account]) => this.instance.methods.updatedBorrowBy(from || account)
+          .call())
         .then((updatedBorrowBy) => Number(updatedBorrowBy))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns the earnings of an account on this market.
+   * for this market's token that has been borrowed by the caller.
+   * @param {string=} from if specified executes the transaction using this account.
+   * @return {Promise<number>}
+   */
+  eventualAccountEarnings(from = '') {
+    return new Promise((resolve, reject) => {
+      web3.eth.getAccounts()
+        .then(([account]) => Promise.all([
+          this.instance.methods.updatedSupplyOf(from || account).call(),
+          this.instance.methods.supplyOf(from || account).call(),
+        ]))
+        .then(([updatedSupplyOf, supplyOf]) => Number(updatedSupplyOf - supplyOf))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Liquidate the collateral for a given borrower based on the amount of its
+   * debt provided .
+   * @param {string} borrower account on the market.
+   * @param {number} amount debt on market amount to pay.
+   * @param {string} collateralMarket collateral market address on platform.
+   * @param {string=} from if specified executes the transaction using this account.
+   * @return {Promise<TXResult>}
+   */
+  liquidateBorrow(borrower, amount, collateralMarket, from = '') {
+    return new Promise((resolve, reject) => {
+      this.token
+        .then((token) => token.approve(this.instanceAddress, amount, from))
+        .then(() => send(this.instance.methods.liquidateBorrow(
+          borrower,
+          amount,
+          collateralMarket,
+        ), from))
         .then(resolve)
         .catch(reject);
     });
@@ -299,12 +408,17 @@ export default class Market {
    * Fails if the token address is not well formed or if the address does not correspond to an
    * actual ERC20 complied smart contract.
    * @param {string} tokenAddress on chain deployed ERC20 complied token address.
-   * @param baseBorrowAnnualRate
-   * @param blocksPerYear
-   * @param utilizationRateFraction
+   * @param {number} baseBorrowAnnualRate
+   * @param {number} blocksPerYear
+   * @param {number} utilizationRateFraction
    * @return {Promise<string>} on chain deployed new market's address.
    */
-  static async create(tokenAddress = '', baseBorrowAnnualRate, blocksPerYear, utilizationRateFraction) {
+  static async create(
+    tokenAddress = '',
+    baseBorrowAnnualRate,
+    blocksPerYear,
+    utilizationRateFraction,
+  ) {
     return new Promise((resolve, reject) => {
       const factor = 1e18;
       if (!tokenAddress.match(/0x[a-fA-F0-9]{40}/)
@@ -318,9 +432,11 @@ export default class Market {
         data: MarketContract.bytecode,
         arguments: [
           tokenAddress,
-          new BN(baseBorrowAnnualRate).div(new BN(100)).times(new BN(factor)),
+          web3.utils.toBN(new BN(baseBorrowAnnualRate).div(new BN(100))
+            .times(new BN(factor)).toNumber()),
           blocksPerYear,
-          new BN(utilizationRateFraction).div(new BN(100)).times(new BN(factor)),
+          web3.utils.toBN(new BN(utilizationRateFraction).div(new BN(100))
+            .times(new BN(factor)).toNumber()),
         ],
       });
       web3.eth.getAccounts()

@@ -4,9 +4,10 @@ import Web3 from 'web3';
 import Rbank from '../src';
 import Controller from '@rsksmart/rbank-controller';
 import Market from '@rsksmart/rbank-market';
+import { web3 } from '@rsksmart/rbank-utils';
 import TokenContract from '../../rbank-market/src/FaucetToken.json';
 
-const web3 = new Web3(Web3.givenProvider || 'ws://localhost:8545');
+const w3 = new Web3(Web3.givenProvider || 'ws://localhost:8545');
 
 chai.use(chaiAsPromised);
 
@@ -33,6 +34,11 @@ describe('Core', () => {
         .to
         .match(/Token/);
     });
+    it('should have access to the web3 instance', () => {
+      return expect(rbank.web3)
+        .to
+        .eq(web3);
+    });
   });
   context('Operational', () => {
     let controller;
@@ -43,9 +49,9 @@ describe('Core', () => {
       market4,
       market5;
     beforeEach(async () => {
-      const [owner] = await web3.eth.getAccounts();
+      const [owner] = await w3.eth.getAccounts();
 
-      const token = new web3.eth.Contract(TokenContract.abi);
+      const token = new w3.eth.Contract(TokenContract.abi);
 
       const deployToken1 = token.deploy({
         data: TokenContract.bytecode,
@@ -76,23 +82,23 @@ describe('Core', () => {
 
       token1 = await deployToken1.send({
         from: owner,
-        gas: gasToken1,
+        gas: gasToken1
       });
       const token2 = await deployToken2.send({
         from: owner,
-        gas: gasToken2,
+        gas: gasToken2
       });
       const token3 = await deployToken3.send({
         from: owner,
-        gas: gasToken3,
+        gas: gasToken3
       });
       const token4 = await deployToken4.send({
         from: owner,
-        gas: gasToken4,
+        gas: gasToken4
       });
       const token5 = await deployToken5.send({
         from: owner,
-        gas: gasToken5,
+        gas: gasToken5
       });
 
       controller = new Controller(await Controller.create());

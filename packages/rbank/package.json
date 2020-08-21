@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@rsksmart/rbank-controller": "^0.0.1",
-    "@rsksmart/rbank-market": "^0.0.1"
+    "@rsksmart/rbank-market": "^0.0.1",
+    "@rsksmart/rbank-utils": "^0.0.1"
   }
 }
