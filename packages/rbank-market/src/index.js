@@ -81,8 +81,8 @@ export default class Market {
         .then(([
           factor,
           blocksPerYear,
-          borrowRatePerBlock]) => new BN(borrowRatePerBlock)
-          .times(new BN(100 * blocksPerYear))
+          borrowRatePerBlock,
+        ]) => new BN(borrowRatePerBlock).times(new BN(100 * blocksPerYear))
           .div(new BN(factor))
           .toNumber())
         .then(resolve)
@@ -432,11 +432,11 @@ export default class Market {
         data: MarketContract.bytecode,
         arguments: [
           tokenAddress,
-          new BN(baseBorrowAnnualRate).div(new BN(100))
-            .times(new BN(factor)),
+          web3.utils.toBN(new BN(baseBorrowAnnualRate).div(new BN(100))
+            .times(new BN(factor)).toNumber()),
           blocksPerYear,
-          new BN(utilizationRateFraction).div(new BN(100))
-            .times(new BN(factor)),
+          web3.utils.toBN(new BN(utilizationRateFraction).div(new BN(100))
+            .times(new BN(factor)).toNumber()),
         ],
       });
       web3.eth.getAccounts()
