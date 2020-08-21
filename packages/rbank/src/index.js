@@ -2,6 +2,7 @@
 import _ from 'lodash';
 import Controller from '@rsksmart/rbank-controller';
 import Market from '@rsksmart/rbank-market';
+import { web3 } from '@rsksmart/rbank-utils';
 
 /**
  * Rbank core
@@ -14,6 +15,7 @@ export default class Rbank {
     this.Controller = Controller;
     this.Market = Market;
     this.Token = Market.Token;
+    this.web3 = web3;
     this.internalController = null;
   }
 
