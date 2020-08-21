@@ -81,8 +81,8 @@ export default class Market {
         .then(([
           factor,
           blocksPerYear,
-          borrowRatePerBlock,
-        ]) => new BN(borrowRatePerBlock).times(new BN(100 * blocksPerYear))
+          borrowRatePerBlock]) => new BN(borrowRatePerBlock)
+          .times(new BN(100 * blocksPerYear))
           .div(new BN(factor))
           .toNumber())
         .then(resolve)
@@ -180,10 +180,16 @@ export default class Market {
    */
   get events() {
     return {
-      supply: (cb) => this.ws.events.Supply({ fromBlock: 'latest' }, cb),
-      borrow: (cb) => this.ws.events.Borrow({ fromBlock: 'latest' }, cb),
-      redeem: (cb) => this.ws.events.Redeem({ fromBlock: 'latest' }, cb),
-      payBorrow: (cb) => this.ws.events.PayBorrow({ fromBlock: 'latest' }, cb),
+      supply: (filter = {}, fromBlock = 'latest', cb) => this.ws
+        .events.Supply({ filter, fromBlock }, cb),
+      borrow: (filter = {}, fromBlock = 'latest', cb) => this.ws
+        .events.Borrow({ filter, fromBlock }, cb),
+      redeem: (filter = {}, fromBlock = 'latest', cb) => this.ws
+        .events.Redeem({ filter, fromBlock }, cb),
+      payBorrow: (filter = {}, fromBlock = 'latest', cb) => this.ws
+        .events.PayBorrow({ filter, fromBlock }, cb),
+      allEvents: (cb) => this.ws.events
+        .allEvents({ fromBlock: 'latest' }, cb),
     };
   }
 
@@ -191,12 +197,14 @@ export default class Market {
    * Gets the provided past events from the given block.
    * @param {string} eventName On chain controller's address
    * @param {number} fromBlock On chain controller's address
+   * @param {Object} filter used for bring filtered events based on its attributes
    * @return {Promise<[Event]>} a Promise to an array of events occurred on the past
    */
-  getPastEvents(eventName, fromBlock) {
+  getPastEvents(eventName, fromBlock, filter = {}) {
     return new Promise((resolve, reject) => {
       this.instance.getPastEvents(eventName,
         {
+          filter,
           fromBlock,
           toBlock: 'latest',
         })
