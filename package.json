@@ -1,6 +1,6 @@
 {
   "name": "@rsksmart/rbank.js",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "RBank DeFi Library",
   "main": "packages/rbank/src/index.js",
   "scripts": {
