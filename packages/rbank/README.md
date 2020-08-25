@@ -1,11 +1,3 @@
-# `@rsksmart/rbank-core`
+# `rbank`
 
-> TODO: description
-
-## Usage
-
-```
-const rbankCore = require('@rsksmart/rbank-core');
-
-// TODO: DEMONSTRATE API
-```
+[Documentation](https://github.com/rsksmart/rbank-js#rbank-js)

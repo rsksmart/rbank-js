@@ -1,11 +1,3 @@
-# `@rsksmart/rbank-market`
+# `rbank-market`
 
-> TODO: description
-
-## Usage
-
-```
-const rbankMarket = require('@rsksmart/rbank-market');
-
-// TODO: DEMONSTRATE API
-```
+[Documentation](https://github.com/rsksmart/rbank-js#rbank-js)

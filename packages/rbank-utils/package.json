@@ -1,6 +1,6 @@
 {
   "name": "@rsksmart/rbank-utils",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Rbank core utils",
   "keywords": [
     "rbank",
@@ -26,5 +26,9 @@
   },
   "bugs": {
     "url": "https://github.com/rsksmart/rbank-js/issues"
+  },
+  "dependencies": {
+    "bignumber.js": "^9.0.0",
+    "web3": "^1.2.11"
   }
 }

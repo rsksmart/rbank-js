@@ -8,14 +8,14 @@ explaining the details of the Rbank operation.
 To install this library just execute:
 
 ```bash
-$ npm i --save @rsksmart/rbank.js
+$ npm i --save @rsksmart/rbank
 ```
 
 ### Usage
 #### Core
 Importing the library and creating an instance.
 ```javascript
-import Rbank from '@rsksmart/rbank.js';
+import Rbank from '@rsksmart/rbank';
 const rbank = new Rbank();
 ```
 
