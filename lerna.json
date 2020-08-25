@@ -1,6 +1,26 @@
 {
+  "version": "0.1.1",
+  "command": {
+    "init": {
+      "exact": true
+    },
+    "publish": {
+      "exact": true,
+      "skipGit": true
+    },
+    "version": {
+      "allowBranch": [
+        "master",
+        "develop",
+        "release/*",
+        "fix/*"
+      ],
+      "conventionalCommits": false,
+      "exact": true,
+      "message": "proj: release %s"
+    }
+  },
   "packages": [
     "packages/*"
-  ],
-  "version": "0.0.0"
+  ]
 }

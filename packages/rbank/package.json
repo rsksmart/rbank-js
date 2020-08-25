@@ -29,6 +29,7 @@
   "dependencies": {
     "@rsksmart/rbank-controller": "^0.1.1",
     "@rsksmart/rbank-market": "^0.1.1",
-    "@rsksmart/rbank-utils": "^0.1.1"
+    "@rsksmart/rbank-utils": "^0.1.1",
+    "lodash": "^4.17.19"
   }
 }

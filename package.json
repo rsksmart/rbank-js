@@ -19,7 +19,13 @@
     "deploy:market": "npm run compile && rm -rf packages/rbank-market/src/*.json && cp dependencies/DeFiProt/build/contracts/Market.json dependencies/DeFiProt/build/contracts/FaucetToken.json packages/rbank-market/src",
     "test": "npm run build && lerna exec -- npm test",
     "format": "prettier --config ./.prettierrc --write ./packages/**/*.js",
-    "lint": "eslint --cache --fix ./packages/"
+    "lint": "eslint --cache --fix ./packages/",
+    "release": "npm run version-check && lerna version --no-git-tag-version && npm run version-update",
+    "version-check": ".scripts/version-check.sh",
+    "version-update": ".scripts/version-update.sh",
+    "publish": ".scripts/publish.sh",
+    "pre-publish-checksums": ".scripts/pre-publish-checksums.sh",
+    "post-publish-checksums": ".scripts/post-publish-checksums.sh"
   },
   "repository": {
     "type": "git",
@@ -65,8 +71,6 @@
     "sinon": "^9.0.2"
   },
   "dependencies": {
-    "bignumber.js": "^9.0.0",
-    "lodash": "^4.17.19",
     "web3": "^1.2.11"
   }
 }
