@@ -4,10 +4,19 @@ import Web3 from 'web3';
 import BigNumber from 'bignumber.js';
 
 const localWS = 'ws://127.0.0.1:8545';
+const rskMainNetWS = '';
+const rskTestNetWS = 'wss://public-node.testnet.rsk.co:4445/websocket';
+const rskRegTestWS = '';
 
 const getWSProvider = () => {
   try {
-    switch (Web3.givenProvider.chainId) {
+    switch (Web3.utils.toDecimal(Web3.givenProvider.chainId)) {
+      case 30:
+        return rskMainNetWS;
+      case 31:
+        return rskTestNetWS;
+      case 33:
+        return rskRegTestWS;
       default:
         return localWS;
     }
