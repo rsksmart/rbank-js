@@ -46,7 +46,7 @@ describe('Token handler', () => {
         .then(tokenAddress => [tokenAddress, new Token(tokenAddress)])
         .then(([address, token]) => {
           expect(token).not.to.be.an('error');
-          expect(token.address).to.eq(address);
+          expect(token.address).to.eq(address.toLowerCase());
         });
     });
   });
@@ -59,7 +59,7 @@ describe('Token handler', () => {
       const t1 = new Token(token1._address);
       return t1.approve(market.address, 10)
         .then(result => {
-          expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
+          expect(result.transactionHash).to.match(/0x[a-f0-9]{64}/);
         });
     });
     it('should allow a specified token holder to authorize an address to perform transfers on their behalf', () => {
@@ -68,7 +68,7 @@ describe('Token handler', () => {
         .then(([owner, user1]) => user1)
         .then(user1 => t1.approve(market.address, 10, user1))
         .then(result => {
-          expect(result.transactionHash).to.match(/0x[a-fA-F0-9]{64}/);
+          expect(result.transactionHash).to.match(/0x[a-f0-9]{64}/);
         });
     });
     it('should return the token name', () => {

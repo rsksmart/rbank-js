@@ -3,6 +3,7 @@ import chaiAsPromised from 'chai-as-promised';
 import Web3 from 'web3';
 import FaucetTokenContract from '../../../dependencies/DeFiProt/build/contracts/FaucetToken.json';
 import MarketContract from '../../../dependencies/DeFiProt/build/contracts/Market.json';
+import ControllerContract from '../../../dependencies/DeFiProt/build/contracts/Controller.json';
 import Controller from '../src';
 
 const web3 = new Web3(Web3.givenProvider || 'ws://localhost:8545');
@@ -27,42 +28,42 @@ describe('Controller handler', () => {
 
     const deployToken1 = token.deploy({
       data: FaucetTokenContract.bytecode,
-      arguments: [10000, 'TOK1', 0, 'TOK1']
+      arguments: [10000, 'TOK1', 0, 'TOK1'],
     });
     const gasToken1 = await deployToken1.estimateGas({ from });
     token1 = await deployToken1.send({
       from: owner,
-      gas: gasToken1
+      gas: gasToken1,
     });
 
     const deployToken2 = token.deploy({
       data: FaucetTokenContract.bytecode,
-      arguments: [10000, 'TOK2', 0, 'TOK2']
+      arguments: [10000, 'TOK2', 0, 'TOK2'],
     });
     const gasToken2 = await deployToken2.estimateGas({ from });
     token2 = await deployToken2.send({
       from,
-      gas: gasToken2
+      gas: gasToken2,
     });
 
     const deployMarket1 = await market.deploy({
       data: MarketContract.bytecode,
-      arguments: [token1._address, 2, 1e6, 20]
+      arguments: [token1._address, 2, 1e6, 20],
     });
     const gasMarket1 = await deployMarket1.estimateGas({ from: owner });
     market1 = await deployMarket1.send({
       from: owner,
-      gas: gasMarket1
+      gas: gasMarket1,
     });
 
     const deployMarket2 = await market.deploy({
       data: MarketContract.bytecode,
-      arguments: [token2._address, 2, 1e6, 20]
+      arguments: [token2._address, 2, 1e6, 20],
     });
     const gasMarket2 = await deployMarket2.estimateGas({ from: owner });
     market2 = await deployMarket2.send({
       from: owner,
-      gas: gasMarket2
+      gas: gasMarket2,
     });
   });
   context('Initialization', () => {
@@ -71,6 +72,35 @@ describe('Controller handler', () => {
         .to
         .be
         .an('error');
+    });
+    it('should create and return the address of the controller lower cased', () => {
+      return Controller.create()
+        .then((controllerAddress) => {
+          expect(controllerAddress)
+            .to
+            .match(/0x[a-f0-9]{40}/);
+        });
+    });
+    it('should get the address of the controller created statically in lower case', () => {
+      return expect(controller.address)
+        .to
+        .match(/0x[a-f0-9]{40}/);
+    });
+    it('should gt the address of a controller created directly in lower case', () => {
+      const ControllerSC = new web3.eth.Contract(ControllerContract.abi);
+      const deployControllerSC = ControllerSC.deploy({ data: ControllerContract.bytecode });
+      return deployControllerSC.estimateGas({ from: owner })
+        .then((gas) => deployControllerSC.send({
+          from: owner,
+          gas,
+        }))
+        .then((instance) => instance._address)
+        .then((controllerDeployedAddress) => [controllerDeployedAddress, new Controller(controllerDeployedAddress)])
+        .then(([cAddress, cInstance]) => {
+          expect(cInstance.address)
+            .to
+            .eq(cAddress.toLowerCase());
+        });
     });
     it('should get a new instance using the controller registered address', () => {
       expect(controller)
@@ -162,7 +192,10 @@ describe('Controller handler', () => {
     });
     it(`should return an error if the address given isn't a token address`, () => {
       return expect(controller.getEventualMarketAddressByToken(controller.address))
-        .to.be.eventually.rejectedWith('Token address not registered');
+        .to
+        .be
+        .eventually
+        .rejectedWith('Token address not registered');
     });
     it('should allow the controller owner to add new markets', () => {
       return controller.addMarket(market1._address)
@@ -224,7 +257,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: owner,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = token1.methods.allocateTo(acc1, 500);
@@ -234,7 +267,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc1,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = token1.methods.approve(market1._address, 500);
@@ -244,7 +277,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc1,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = market1.methods.supply(500);
@@ -254,7 +287,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc1,
-          gas
+          gas,
         }))
         .then(() => controller.setMarketPrice(market1._address, 10))
         .then(() => controller.eventualMarketPrice(market1._address))
@@ -273,7 +306,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: owner,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = token2.methods.allocateTo(acc2, 1000);
@@ -283,7 +316,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc2,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = token2.methods.approve(market2._address, 1000);
@@ -293,7 +326,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc2,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = market2.methods.supply(1000);
@@ -303,7 +336,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc2,
-          gas
+          gas,
         }))
         .then(() => controller.setMarketPrice(market2._address, 10))
         .then(() => controller.eventualMarketPrice(market2._address))
@@ -321,7 +354,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc1,
-          gas
+          gas,
         }))
         .then(() => controller.getAccountValues(acc1))
         .then(({ supplyValue, borrowValue }) => {
@@ -344,7 +377,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: owner,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = token1.methods.allocateTo(acc1, 500);
@@ -354,7 +387,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc1,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = token1.methods.approve(market1._address, 500);
@@ -364,7 +397,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc1,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = market1.methods.supply(500);
@@ -374,7 +407,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc1,
-          gas
+          gas,
         }))
         .then(() => controller.setMarketPrice(market1._address, 10))
         .then(() => controller.eventualMarketPrice(market1._address))
@@ -393,7 +426,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: owner,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = token2.methods.allocateTo(acc2, 1000);
@@ -403,7 +436,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc2,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = token2.methods.approve(market2._address, 1000);
@@ -413,7 +446,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc2,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = market2.methods.supply(1000);
@@ -423,7 +456,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc2,
-          gas
+          gas,
         }))
         .then(() => controller.setMarketPrice(market2._address, 10))
         .then(() => controller.eventualMarketPrice(market2._address))
@@ -441,7 +474,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc1,
-          gas
+          gas,
         }))
         .then(() => controller.getAccountLiquidity(acc1))
         .then(liquidity => Number(liquidity))
@@ -454,8 +487,10 @@ describe('Controller handler', () => {
     it('should return 1 as health factor for users accounts that have not interacted yet', () => {
       return controller.getAccountHealth(acc1)
         .then((healthFactor) => {
-          expect(healthFactor).to.eq(1);
-        })
+          expect(healthFactor)
+            .to
+            .eq(1);
+        });
     });
     it('should return the health factor of a given account', () => {
       return controller.addMarket(market1._address)
@@ -467,7 +502,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: owner,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = token1.methods.allocateTo(acc1, 500);
@@ -477,7 +512,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc1,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = token1.methods.approve(market1._address, 500);
@@ -487,7 +522,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc1,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = market1.methods.supply(500);
@@ -497,7 +532,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc1,
-          gas
+          gas,
         }))
         .then(() => controller.setMarketPrice(market1._address, 10))
         .then(() => controller.eventualMarketPrice(market1._address))
@@ -516,7 +551,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: owner,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = token2.methods.allocateTo(acc2, 1000);
@@ -526,7 +561,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc2,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = token2.methods.approve(market2._address, 1000);
@@ -536,7 +571,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc2,
-          gas
+          gas,
         }))
         .then(() => {
           const signature = market2.methods.supply(1000);
@@ -546,7 +581,7 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc2,
-          gas
+          gas,
         }))
         .then(() => controller.setMarketPrice(market2._address, 10))
         .then(() => controller.eventualMarketPrice(market2._address))
@@ -564,12 +599,14 @@ describe('Controller handler', () => {
         .then(result => Promise.all(result))
         .then(([signature, gas]) => signature.send({
           from: acc1,
-          gas
+          gas,
         }))
         .then(() => controller.getAccountHealth(acc1))
         .then((healthFactor) => {
-          expect(healthFactor).to.eq(0.871926);
-        })
+          expect(healthFactor)
+            .to
+            .eq(0.871926);
+        });
     });
   });
 });
