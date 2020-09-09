@@ -237,7 +237,6 @@ export default class Controller {
             this.instance.methods.getAccountHealth(account).call(),
           ]);
         })
-        .then((promises) => Promise.all(promises))
         .then(([mantissa, accountHealth]) => Number(accountHealth) / mantissa)
         .then((accountHealth) => 1 / (1 + Math.exp(-accountHealth)))
         .then((sigmoidHealth) => (Number(sigmoidHealth) - 0.731059)
