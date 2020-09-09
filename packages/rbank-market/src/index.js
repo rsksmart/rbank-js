@@ -19,10 +19,10 @@ export default class Market {
    * @return {Error}
    */
   constructor(address = '') {
-    if (!address.match(/0x[a-fA-F0-9]{40}/)) return new Error('Missing address');
+    this.instanceAddress = address.toLowerCase();
+    if (!this.address.match(/0x[a-f0-9]{40}/)) return new Error('Missing address');
     this.instance = new web3.eth.Contract(MarketContract.abi, address);
     this.ws = new web3WS.eth.Contract(MarketContract.abi, address);
-    this.instanceAddress = address;
     this.token = this.instance.methods.token()
       .call()
       .then((tokenAddress) => new Token(tokenAddress));
@@ -431,7 +431,7 @@ export default class Market {
       const deploy = market.deploy({
         data: MarketContract.bytecode,
         arguments: [
-          tokenAddress,
+          tokenAddress.toLowerCase(),
           web3.utils.toBN(new BN(baseBorrowAnnualRate).div(new BN(100))
             .times(new BN(factor)).toNumber()),
           blocksPerYear,
@@ -447,7 +447,7 @@ export default class Market {
           gas,
         }))
         // eslint-disable-next-line no-underscore-dangle
-        .then((instance) => instance._address)
+        .then((instance) => instance._address.toLowerCase())
         .then(resolve)
         .catch(reject);
     });

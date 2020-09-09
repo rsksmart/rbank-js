@@ -16,9 +16,9 @@ export default class Controller {
    * @return {Error}
    */
   constructor(address = '') {
-    if (!address.match(/0x[a-fA-F0-9]{40}/)) return new Error('Missing address');
+    this.instanceAddress = address.toLowerCase();
+    if (!this.address.match(/0x[a-f0-9]{40}/)) return new Error('Missing address');
     this.instance = new web3.eth.Contract(ControllerContract.abi, address);
-    this.instanceAddress = address;
   }
 
   /**
@@ -229,18 +229,20 @@ export default class Controller {
    */
   getAccountHealth(account) {
     return new Promise((resolve, reject) => {
-      this.eventualMantissa
-        .then((mantissa) => [
-          mantissa,
-          this.instance.methods.getAccountHealth(account).call(),
-        ])
-        .then((promises) => Promise.all(promises))
+      Promise.all([this.eventualMantissa, this.getAccountValues(account)])
+        .then(([mantissa, { borrowValue }]) => {
+          if (borrowValue <= 0) resolve(1);
+          return Promise.all([
+            mantissa,
+            this.instance.methods.getAccountHealth(account).call(),
+          ]);
+        })
         .then(([mantissa, accountHealth]) => Number(accountHealth) / mantissa)
         .then((accountHealth) => 1 / (1 + Math.exp(-accountHealth)))
         .then((sigmoidHealth) => (Number(sigmoidHealth) - 0.731059)
           / (0.999999 - 0.731059))
-        .then((healthPercentage) => (healthPercentage <= 0
-          ? 1 : Number(healthPercentage.toFixed(6))))
+        .then((healthPercentage) => (healthPercentage < 0
+          ? 0 : Number(healthPercentage.toFixed(6))))
         .then(resolve)
         .catch(reject);
     });
@@ -314,7 +316,7 @@ export default class Controller {
         .then((result) => Promise.all(result))
         .then(([from, gas]) => deploy.send({ from, gas }))
         // eslint-disable-next-line no-underscore-dangle
-        .then((instance) => instance._address)
+        .then((instance) => instance._address.toLowerCase())
         .then(resolve)
         .catch(reject);
     });

@@ -40,7 +40,7 @@ describe('Utils module', () => {
       .then(result => {
         expect(result.transactionHash)
           .to
-          .match(/0x[a-fA-F0-9]{64}/);
+          .match(/0x[a-f0-9]{64}/);
       });
   });
   it('should properly send transaction generically specifying the address performing the action', () => {
@@ -53,7 +53,7 @@ describe('Utils module', () => {
       .then(result => {
         expect(result.transactionHash)
           .to
-          .match(/0x[a-fA-F0-9]{64}/);
+          .match(/0x[a-f0-9]{64}/);
       });
   });
   it('should get a BigNumber instance', () => {
