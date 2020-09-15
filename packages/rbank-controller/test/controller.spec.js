@@ -608,5 +608,106 @@ describe('Controller handler', () => {
             .eq(0.871926);
         });
     });
+    it('should return the health as 0 when somebody has bad health', () => {
+      return controller.addMarket(market1._address)
+        .then(() => {
+          const signature = market1.methods.setController(controller.address);
+          const eventualEstimatedGas = signature.estimateGas({ from: owner });
+          return Promise.all([signature, eventualEstimatedGas]);
+        })
+        .then(([signature, gas]) => signature.send({
+          from: owner,
+          gas,
+        }))
+        .then(() => {
+          const signature = token1.methods.allocateTo(acc1, 500);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc1 });
+          return Promise.all([signature, eventualEstimatedGas]);
+        })
+        .then(([signature, gas]) => signature.send({
+          from: acc1,
+          gas,
+        }))
+        .then(() => {
+          const signature = token1.methods.approve(market1._address, 500);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc1 });
+          return Promise.all([signature, eventualEstimatedGas]);
+        })
+        .then(([signature, gas]) => signature.send({
+          from: acc1,
+          gas,
+        }))
+        .then(() => {
+          const signature = market1.methods.supply(500);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc1 });
+          return Promise.all([signature, eventualEstimatedGas]);
+        })
+        .then(([signature, gas]) => signature.send({
+          from: acc1,
+          gas,
+        }))
+        .then(() => controller.setMarketPrice(market1._address, 10))
+        .then(() => controller.addMarket(market2._address))
+        .then(() => {
+          const signature = market2.methods.setController(controller.address);
+          const eventualEstimatedGas = signature.estimateGas({ from: owner });
+          return Promise.all([signature, eventualEstimatedGas]);
+        })
+        .then(([signature, gas]) => signature.send({
+          from: owner,
+          gas,
+        }))
+        .then(() => {
+          const signature = token2.methods.allocateTo(acc2, 1000);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc2 });
+          return Promise.all([signature, eventualEstimatedGas]);
+        })
+        .then(([signature, gas]) => signature.send({
+          from: acc2,
+          gas,
+        }))
+        .then(() => {
+          const signature = token2.methods.approve(market2._address, 1000);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc2 });
+          return Promise.all([signature, eventualEstimatedGas]);
+        })
+        .then(([signature, gas]) => signature.send({
+          from: acc2,
+          gas,
+        }))
+        .then(() => {
+          const signature = market2.methods.supply(1000);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc2 });
+          return Promise.all([signature, eventualEstimatedGas]);
+        })
+        .then(([signature, gas]) => signature.send({
+          from: acc2,
+          gas,
+        }))
+        .then(() => controller.setMarketPrice(market2._address, 10))
+        .then(() => controller.eventualMarketPrice(market2._address))
+        .then(marketPrice => {
+          expect(marketPrice)
+            .to
+            .eq(10);
+          return true;
+        })
+        .then(() => {
+          const signature = market2.methods.borrow(250);
+          const eventualEstimatedGas = signature.estimateGas({ from: acc1 });
+          return Promise.all([signature, eventualEstimatedGas]);
+        })
+        .then(([signature, gas]) => signature.send({
+          from: acc1,
+          gas,
+        }))
+        .then(() => controller.setMarketPrice(market1._address, 7))
+        .then(() => controller.getAccountHealth(acc1))
+        .then((healthFactor) => {
+          expect(healthFactor)
+            .to
+            .eq(0);
+        });
+    });
   });
 });
