@@ -1,5 +1,6 @@
 import { send, web3 } from '@rsksmart/rbank-utils';
 import ControllerContract from './Controller.json';
+/* eslint no-underscore-dangle: 0 */
 
 /**
  * A blockchain transaction response.
@@ -27,6 +28,19 @@ export default class Controller {
    */
   get address() {
     return this.instanceAddress;
+  }
+
+  /**
+   * Controller deploy block.
+   * @return {Number} this controller deploy block.
+   */
+  get eventualDeployBlock() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.deployBlock()
+        .call()
+        .then(resolve)
+        .catch(reject);
+    });
   }
 
   /**
@@ -105,6 +119,92 @@ export default class Controller {
         .then(resolve)
         .catch(reject);
     });
+  }
+
+  /**
+   *
+   * @param period string the period over the calculation is based
+   * @private
+   */
+  _getPastBlockNumbers(period) {
+    const pastBlockNumbers = [];
+    const blocksPerYear = 1000000;
+    let labelsPerPeriod;
+    let blocksPerPeriod;
+    switch (period) {
+      case 'day':
+        labelsPerPeriod = 12;
+        blocksPerPeriod = Math.floor(blocksPerYear / (365.25 * 12));
+        break;
+      case 'week':
+        labelsPerPeriod = 7;
+        blocksPerPeriod = Math.floor(blocksPerYear / 365.25);
+        break;
+      case 'month':
+        labelsPerPeriod = 15;
+        blocksPerPeriod = Math.floor((blocksPerYear * 2) / (365.25));
+        break;
+      case 'year':
+        labelsPerPeriod = 12;
+        blocksPerPeriod = Math.floor((blocksPerYear) / (12));
+        break;
+      default:
+        labelsPerPeriod = 7;
+        blocksPerPeriod = Math.floor(blocksPerYear / 365.25);
+        break;
+    }
+    return new Promise((resolve, reject) => {
+      Promise.all([this.eventualDeployBlock, web3.eth.getBlockNumber()])
+        .then(([deployBlock, currentBlockNumber]) => {
+          for (let i = 0; i < labelsPerPeriod; i += 1) {
+            const pastBlockNumber = currentBlockNumber - (blocksPerPeriod * i) >= deployBlock
+              ? currentBlockNumber - (blocksPerPeriod * i) : deployBlock;
+            pastBlockNumbers.push(pastBlockNumber);
+          }
+          resolve(pastBlockNumbers);
+        })
+        .catch(reject);
+    });
+  }
+
+  /**
+   *
+   * @param from
+   * @param period
+   */
+  getOverallBalance(from, period = 'day') {
+    return new Promise((resolve, reject) => {
+      this._getPastBlockNumbers(period)
+        .then((pastBlockNumbers) => {
+          const pastAccountValuesPromises = Promise.all(pastBlockNumbers
+            .map((blockNumber) => {
+              const controller = new Controller(this.address);
+              controller.setDefaultBlock(blockNumber);
+              return controller.getAccountValues(from);
+            }));
+          const pastBlocksPromise = Promise.all(pastBlockNumbers
+            .map((blockNumber) => web3.eth.getBlock(blockNumber)));
+          return Promise.all([pastAccountValuesPromises, pastBlocksPromise]);
+        })
+        .then(([pastAccountValues, pastBlocks]) => {
+          const overallBalances = pastAccountValues
+            .map(({ supplyValue, borrowValue }, idx) => {
+              const balance = supplyValue - borrowValue;
+              const time = new Date(pastBlocks[idx].timestamp * 1000).getHours();
+              return [time, balance];
+            });
+          resolve(overallBalances);
+        })
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Modifies the instance default block
+   * @param blockNumber Number new default block
+   */
+  setDefaultBlock(blockNumber) {
+    this.instance.defaultBlock = blockNumber;
   }
 
   /**
