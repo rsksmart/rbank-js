@@ -772,8 +772,11 @@ describe('Controller handler', () => {
                   .send({from, gas: estimatedGas[idx]}))))
           .then(() => newController.getOverallBalance(from, 'day'))
           .then((overallBalance) => {
-            console.log(overallBalance);
-            expect(overallBalance.length).to.eq(12)
+            expect(overallBalance.length).to.eq(12);
+            overallBalance.forEach(([timestamp, balance]) => {
+              expect(typeof timestamp).to.eq('object');
+              expect(typeof balance).to.eq('number')
+            })
           })
     });
   });

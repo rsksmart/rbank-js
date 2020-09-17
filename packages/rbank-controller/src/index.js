@@ -1,6 +1,13 @@
-import { send, web3 } from '@rsksmart/rbank-utils';
+import {
+  send,
+  web3,
+  PERIOD_DAY,
+  PERIOD_WEEK,
+  PERIOD_MONTH,
+  PERIOD_YEAR,
+} from '@rsksmart/rbank-utils';
+import _ from 'lodash';
 import ControllerContract from './Controller.json';
-/* eslint no-underscore-dangle: 0 */
 
 /**
  * A blockchain transaction response.
@@ -122,45 +129,44 @@ export default class Controller {
   }
 
   /**
-   *
+   * Returns an array with the blocks series according to the period
    * @param period string the period over the calculation is based
-   * @private
+   * @return {Promise<[number]>} a promise to a result array block numbers
    */
-  _getPastBlockNumbers(period) {
+  getPastBlockNumbers(period) {
     const pastBlockNumbers = [];
     const blocksPerYear = 1000000;
     let labelsPerPeriod;
     let blocksPerPeriod;
     switch (period) {
-      case 'day':
+      case PERIOD_DAY:
         labelsPerPeriod = 12;
         blocksPerPeriod = Math.floor(blocksPerYear / (365.25 * 12));
         break;
-      case 'week':
+      case PERIOD_WEEK:
         labelsPerPeriod = 7;
         blocksPerPeriod = Math.floor(blocksPerYear / 365.25);
         break;
-      case 'month':
+      case PERIOD_MONTH:
         labelsPerPeriod = 15;
         blocksPerPeriod = Math.floor((blocksPerYear * 2) / (365.25));
         break;
-      case 'year':
+      case PERIOD_YEAR:
         labelsPerPeriod = 12;
         blocksPerPeriod = Math.floor((blocksPerYear) / (12));
         break;
       default:
         labelsPerPeriod = 7;
         blocksPerPeriod = Math.floor(blocksPerYear / 365.25);
-        break;
     }
     return new Promise((resolve, reject) => {
       Promise.all([this.eventualDeployBlock, web3.eth.getBlockNumber()])
         .then(([deployBlock, currentBlockNumber]) => {
-          for (let i = 0; i < labelsPerPeriod; i += 1) {
+          _.range(labelsPerPeriod).forEach((i) => {
             const pastBlockNumber = currentBlockNumber - (blocksPerPeriod * i) >= deployBlock
               ? currentBlockNumber - (blocksPerPeriod * i) : deployBlock;
             pastBlockNumbers.push(pastBlockNumber);
-          }
+          });
           resolve(pastBlockNumbers);
         })
         .catch(reject);
@@ -168,13 +174,15 @@ export default class Controller {
   }
 
   /**
-   *
-   * @param from
-   * @param period
+   * Returns an two dimensional array with the balance of an account through a given period
+   * @param {string} from An account
+   * @param {string} period over the balances ('day', 'week', 'month', 'year')
+   * @return {Promise<[[string, number]]>} an array of arrays with the timestamp
+   * and the balance value of the account
    */
-  getOverallBalance(from, period = 'day') {
+  getOverallBalance(from, period = PERIOD_WEEK) {
     return new Promise((resolve, reject) => {
-      this._getPastBlockNumbers(period)
+      this.getPastBlockNumbers(period)
         .then((pastBlockNumbers) => {
           const pastAccountValuesPromises = Promise.all(pastBlockNumbers
             .map((blockNumber) => {
@@ -190,7 +198,7 @@ export default class Controller {
           const overallBalances = pastAccountValues
             .map(({ supplyValue, borrowValue }, idx) => {
               const balance = supplyValue - borrowValue;
-              const time = new Date(pastBlocks[idx].timestamp * 1000).getHours();
+              const time = new Date(pastBlocks[idx].timestamp * 1000);
               return [time, balance];
             });
           resolve(overallBalances);
