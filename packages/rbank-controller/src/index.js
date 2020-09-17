@@ -45,6 +45,7 @@ export default class Controller {
     return new Promise((resolve, reject) => {
       this.instance.methods.deployBlock()
         .call()
+        .then((block) => Number(block))
         .then(resolve)
         .catch(reject);
     });

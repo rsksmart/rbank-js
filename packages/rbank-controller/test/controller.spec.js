@@ -81,6 +81,20 @@ describe('Controller handler', () => {
             .match(/0x[a-f0-9]{40}/);
         });
     });
+    it('should return the creation blockNumber of the controller instance',() => {
+      let currentBlock;
+      return web3.eth.getBlockNumber()
+          .then((block) => {
+            currentBlock = Number(block);
+            return Controller.create();
+          })
+          .then((controllerAddress) => {
+            console.log(currentBlock);
+            const controller = new Controller(controllerAddress);
+            return controller.eventualDeployBlock;
+          })
+          .then((deployBlock) => expect(deployBlock).to.eq(currentBlock+1))
+    });
     it('should get the address of the controller created statically in lower case', () => {
       return expect(controller.address)
         .to

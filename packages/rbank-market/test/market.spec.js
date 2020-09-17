@@ -131,6 +131,20 @@ describe('Market handler', () => {
             .eq(marketAddress.toLowerCase());
         });
     });
+    it('should return the creation blockNumber of the market instance',() => {
+      let currentBlock;
+      return web3.eth.getBlockNumber()
+          .then((block) => {
+            currentBlock = Number(block);
+            return Market.create(token1._address, 2, 1e6, 20);
+          })
+          .then((marketAddress) => {
+            console.log(currentBlock);
+            const market = new Market(marketAddress);
+            return market.eventualDeployBlock;
+          })
+          .then((deployBlock) => expect(deployBlock).to.eq(currentBlock+1))
+    });
   });
   context('Initialization', () => {
     it('should throw an error if no instance address is passed', () => {

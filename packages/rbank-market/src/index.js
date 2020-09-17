@@ -1,6 +1,4 @@
-import {
-  BN, send, web3, web3WS,
-} from '@rsksmart/rbank-utils';
+import { BN, send, web3, web3WS } from '@rsksmart/rbank-utils';
 import MarketContract from './Market.json';
 import Token from './token';
 
@@ -34,6 +32,20 @@ export default class Market {
    */
   get address() {
     return this.instanceAddress;
+  }
+
+  /**
+   * Market deploy block.
+   * @return {Number} this controller deploy block.
+   */
+  get eventualDeployBlock() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.deployBlock()
+        .call()
+        .then((block) => Number(block))
+        .then(resolve)
+        .catch(reject);
+    });
   }
 
   /**
