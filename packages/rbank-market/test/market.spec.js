@@ -132,18 +132,23 @@ describe('Market handler', () => {
         });
     });
     it('should return the creation blockNumber of the market instance',() => {
-      let currentBlock;
-      return web3.eth.getBlockNumber()
-          .then((block) => {
-            currentBlock = Number(block);
-            return Market.create(token1._address, 2, 1e6, 20);
+      const mkt = new web3.eth.Contract(MarketContract.abi);
+      const deployMarket = mkt.deploy({
+        data: MarketContract.bytecode,
+        arguments: [token1._address, "100000000000000000", 1000000, "1000000000000000000000"]});
+      const encodeParameters = web3.eth.abi
+          .encodeParameters(['address','uint','uint','uint'],
+              [token1._address, "100000000000000000", 1000000, "1000000000000000000000"]);
+      let transaction;
+      deployMarket.estimateGas({from: owner})
+          .then(gas => web3.eth
+              .sendTransaction({from: owner, data: MarketContract.bytecode + encodeParameters.slice(2), gas}))
+          .then(tx => {
+            transaction = tx;
+            const marketDeployed = new Market(tx.contractAddress);
+            return marketDeployed.eventualDeployBlock;
           })
-          .then((marketAddress) => {
-            console.log(currentBlock);
-            const market = new Market(marketAddress);
-            return market.eventualDeployBlock;
-          })
-          .then((deployBlock) => expect(deployBlock).to.eq(currentBlock+1))
+          .then((deployBlock) => expect(deployBlock).to.eq(transaction.blockNumber));
     });
   });
   context('Initialization', () => {
