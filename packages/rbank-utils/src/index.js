@@ -70,3 +70,27 @@ export const send = (signature, from = '') => new Promise((resolve, reject) => {
       .catch(reject);
   }
 });
+
+/**
+ * @constant
+ * @type {string}
+ */
+export const PERIOD_DAY = 'day';
+
+/**
+ * @constant
+ * @type {string}
+ */
+export const PERIOD_WEEK = 'week';
+
+/**
+ * @constant
+ * @type {string}
+ */
+export const PERIOD_MONTH = 'month';
+
+/**
+ * @constant
+ * @type {string}
+ */
+export const PERIOD_YEAR = 'year';

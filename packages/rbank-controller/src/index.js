@@ -1,4 +1,12 @@
-import { send, web3 } from '@rsksmart/rbank-utils';
+import {
+  send,
+  web3,
+  PERIOD_DAY,
+  PERIOD_WEEK,
+  PERIOD_MONTH,
+  PERIOD_YEAR,
+} from '@rsksmart/rbank-utils';
+import _ from 'lodash';
 import ControllerContract from './Controller.json';
 
 /**
@@ -27,6 +35,20 @@ export default class Controller {
    */
   get address() {
     return this.instanceAddress;
+  }
+
+  /**
+   * Controller deploy block.
+   * @return {Number} this controller deploy block.
+   */
+  get eventualDeployBlock() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.deployBlock()
+        .call()
+        .then((block) => Number(block))
+        .then(resolve)
+        .catch(reject);
+    });
   }
 
   /**
@@ -105,6 +127,93 @@ export default class Controller {
         .then(resolve)
         .catch(reject);
     });
+  }
+
+  /**
+   * Returns an array with the blocks series according to the period
+   * @param period string the period over the calculation is based
+   * @return {Promise<[number]>} a promise to a result array block numbers
+   */
+  getPastBlockNumbers(period) {
+    const pastBlockNumbers = [];
+    const blocksPerYear = 1000000;
+    let labelsPerPeriod;
+    let blocksPerPeriod;
+    switch (period) {
+      case PERIOD_DAY:
+        labelsPerPeriod = 12;
+        blocksPerPeriod = Math.floor(blocksPerYear / (365.25 * 12));
+        break;
+      case PERIOD_WEEK:
+        labelsPerPeriod = 7;
+        blocksPerPeriod = Math.floor(blocksPerYear / 365.25);
+        break;
+      case PERIOD_MONTH:
+        labelsPerPeriod = 15;
+        blocksPerPeriod = Math.floor((blocksPerYear * 2) / (365.25));
+        break;
+      case PERIOD_YEAR:
+        labelsPerPeriod = 12;
+        blocksPerPeriod = Math.floor((blocksPerYear) / (12));
+        break;
+      default:
+        labelsPerPeriod = 7;
+        blocksPerPeriod = Math.floor(blocksPerYear / 365.25);
+    }
+    return new Promise((resolve, reject) => {
+      Promise.all([this.eventualDeployBlock, web3.eth.getBlockNumber()])
+        .then(([deployBlock, currentBlockNumber]) => {
+          _.range(labelsPerPeriod).forEach((i) => {
+            const pastBlockNumber = currentBlockNumber - (blocksPerPeriod * i) >= deployBlock
+              ? currentBlockNumber - (blocksPerPeriod * i) : deployBlock;
+            pastBlockNumbers.push(pastBlockNumber);
+          });
+          resolve(pastBlockNumbers);
+        })
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns an two dimensional array with the balance of an account through a given period
+   * @param {string} from An account
+   * @param {string} period over the balances ('day', 'week', 'month', 'year')
+   * @return {Promise<[[object, number]]>} an array of arrays with the timestamp
+   * and the balance value of the account
+   */
+  getOverallBalance(from, period = PERIOD_WEEK) {
+    return new Promise((resolve, reject) => {
+      this.getPastBlockNumbers(period)
+        .then((pastBlockNumbers) => {
+          const pastAccountValuesPromises = Promise.all(pastBlockNumbers
+            .map((blockNumber) => {
+              const controller = new Controller(this.address);
+              controller.setDefaultBlock(blockNumber);
+              return controller.getAccountValues(from);
+            }));
+          const pastBlocksPromise = Promise.all(pastBlockNumbers
+            .map((blockNumber) => web3.eth.getBlock(blockNumber)));
+          return Promise.all([pastAccountValuesPromises, pastBlocksPromise]);
+        })
+        .then(([pastAccountValues, pastBlocks]) => {
+          const overallBalances = pastAccountValues
+            .map(({ supplyValue, borrowValue }, idx) => {
+              const balance = supplyValue - borrowValue;
+              const time = new Date(pastBlocks[idx].timestamp * 1000);
+              return [time, balance];
+            });
+          resolve(overallBalances);
+        })
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Modifies the instance default block
+   * @param blockNumber Number new default block
+   */
+  setDefaultBlock(blockNumber) {
+    this.instance.defaultBlock = blockNumber;
   }
 
   /**

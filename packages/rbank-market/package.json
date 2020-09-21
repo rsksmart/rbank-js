@@ -28,6 +28,7 @@
     "url": "https://github.com/rsksmart/rbank-js/issues"
   },
   "dependencies": {
-    "@rsksmart/rbank-utils": "0.1.4"
+    "@rsksmart/rbank-utils": "0.1.4",
+    "lodash": "^4.17.20"
   }
 }

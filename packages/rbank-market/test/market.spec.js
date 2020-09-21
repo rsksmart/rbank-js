@@ -131,6 +131,25 @@ describe('Market handler', () => {
             .eq(marketAddress.toLowerCase());
         });
     });
+    it('should return the creation blockNumber of the market instance',() => {
+      const mkt = new web3.eth.Contract(MarketContract.abi);
+      const deployMarket = mkt.deploy({
+        data: MarketContract.bytecode,
+        arguments: [token1._address, "100000000000000000", 1000000, "1000000000000000000000"]});
+      const encodeParameters = web3.eth.abi
+          .encodeParameters(['address','uint','uint','uint'],
+              [token1._address, "100000000000000000", 1000000, "1000000000000000000000"]);
+      let transaction;
+      deployMarket.estimateGas({from: owner})
+          .then(gas => web3.eth
+              .sendTransaction({from: owner, data: MarketContract.bytecode + encodeParameters.slice(2), gas}))
+          .then(tx => {
+            transaction = tx;
+            const marketDeployed = new Market(tx.contractAddress);
+            return marketDeployed.eventualDeployBlock;
+          })
+          .then((deployBlock) => expect(deployBlock).to.eq(transaction.blockNumber));
+    });
   });
   context('Initialization', () => {
     it('should throw an error if no instance address is passed', () => {
@@ -528,6 +547,42 @@ describe('Market handler', () => {
             .to
             .eq(0);
         });
+    });
+    it('should return an array of past blocks given a period from now', () => {
+      let currentBlock;
+      let newMarket;
+      return Market.create(
+          token2._address,
+          2,
+          1e6,
+          20,
+      )
+          .then((marketAddress) => {
+            newMarket = new Market(marketAddress);
+            return web3.eth.getBlockNumber()
+          })
+          .then((block) => {
+            currentBlock = block;
+            return newMarket.getPastBlockNumbers('week');
+          })
+          .then((blocks) => {
+            expect(blocks[0]).to.eq(currentBlock);
+            expect(blocks.length).to.eq(7);
+          });
+    });
+    it('should return an array of arrays with total supply, and total borrow data of this market based on a period', () => {
+      return market2.supply(100, user2)
+          .then(() => market1.supply(100, user1))
+          .then(() => market2.borrow(50, user1))
+          .then(() => market2.getOverallBalance('week'))
+          .then((overallBalances) => {
+            expect(overallBalances.length).to.eq(7);
+            overallBalances.forEach(([timestamp, supplyValue, borrowValue]) => {
+              expect(typeof timestamp).to.eq('object');
+              expect(typeof supplyValue).to.eq('number');
+              expect(typeof borrowValue).to.eq('number');
+            })
+          });
     });
   });
   context('Events', () => {
