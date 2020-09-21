@@ -548,6 +548,42 @@ describe('Market handler', () => {
             .eq(0);
         });
     });
+    it('should return an array of past blocks given a period from now', () => {
+      let currentBlock;
+      let newMarket;
+      return Market.create(
+          token2._address,
+          2,
+          1e6,
+          20,
+      )
+          .then((marketAddress) => {
+            newMarket = new Market(marketAddress);
+            return web3.eth.getBlockNumber()
+          })
+          .then((block) => {
+            currentBlock = block;
+            return newMarket.getPastBlockNumbers('week');
+          })
+          .then((blocks) => {
+            expect(blocks[0]).to.eq(currentBlock);
+            expect(blocks.length).to.eq(7);
+          });
+    });
+    it('should return an array of arrays with total supply, and total borrow data of this market based on a period', () => {
+      return market2.supply(100, user2)
+          .then(() => market1.supply(100, user1))
+          .then(() => market2.borrow(50, user1))
+          .then(() => market2.getOverallBalance('week'))
+          .then((overallBalances) => {
+            expect(overallBalances.length).to.eq(7);
+            overallBalances.forEach(([timestamp, supplyValue, borrowValue]) => {
+              expect(typeof timestamp).to.eq('object');
+              expect(typeof supplyValue).to.eq('number');
+              expect(typeof borrowValue).to.eq('number');
+            })
+          });
+    });
   });
   context('Events', () => {
     let owner,

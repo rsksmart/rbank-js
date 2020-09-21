@@ -178,7 +178,7 @@ export default class Controller {
    * Returns an two dimensional array with the balance of an account through a given period
    * @param {string} from An account
    * @param {string} period over the balances ('day', 'week', 'month', 'year')
-   * @return {Promise<[[string, number]]>} an array of arrays with the timestamp
+   * @return {Promise<[[object, number]]>} an array of arrays with the timestamp
    * and the balance value of the account
    */
   getOverallBalance(from, period = PERIOD_WEEK) {
