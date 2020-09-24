@@ -1,6 +1,6 @@
 {
   "name": "@rsksmart/rbank-market",
-  "version": "0.1.4",
+  "version": "1.0.0",
   "description": "Rbank market handler",
   "keywords": [
     "Rbank",
@@ -28,7 +28,7 @@
     "url": "https://github.com/rsksmart/rbank-js/issues"
   },
   "dependencies": {
-    "@rsksmart/rbank-utils": "0.1.4",
+    "@rsksmart/rbank-utils": "1.0.0",
     "lodash": "^4.17.20"
   }
 }
