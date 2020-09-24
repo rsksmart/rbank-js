@@ -81,6 +81,20 @@ describe('Controller handler', () => {
             .match(/0x[a-f0-9]{40}/);
         });
     });
+    it('should return the creation blockNumber of the controller instance',() => {
+      const ctrl = new web3.eth.Contract(ControllerContract.abi);
+      const deployController = ctrl.deploy({ data: ControllerContract.bytecode });
+      let transaction;
+      deployController.estimateGas({from: owner})
+          .then(gas => web3.eth
+              .sendTransaction({from: owner, data: ControllerContract.bytecode, gas}))
+          .then(tx => {
+            transaction = tx;
+            const controllerDeployed = new Controller(tx.contractAddress);
+            return controllerDeployed.eventualDeployBlock;
+          })
+          .then((deployBlock) => expect(deployBlock).to.eq(transaction.blockNumber));
+    });
     it('should get the address of the controller created statically in lower case', () => {
       return expect(controller.address)
         .to
@@ -708,6 +722,67 @@ describe('Controller handler', () => {
             .to
             .eq(0);
         });
+    });
+  });
+  context('Account information', () => {
+    it('should return the creation blockNumber of the controller',() => {
+      return Promise.all([controller.eventualDeployBlock, controller.address])
+          .then(([block, controllerAddress]) => {
+            let controllerGenesis = new web3.eth.Contract(ControllerContract.abi, controllerAddress);
+            controllerGenesis.defaultBlock = block;
+            return controllerGenesis.methods.getAccountValues(from).call();
+          })
+          .then(({supplyValue, borrowValue}) => {
+            expect(Number(supplyValue)).to.eq(0);
+            expect(Number(borrowValue)).to.eq(0);
+          })
+    });
+    it('should return an array of objects with the defined data for a day period', async () => {
+      const newController = new Controller(await Controller.create());
+      const market = new web3.eth.Contract(MarketContract.abi);
+      const deployMarket = await market.deploy({
+        data: MarketContract.bytecode,
+        arguments: [token1._address, 2, 1e6, 20],
+      });
+      let market1;
+      let supplySignArr = [];
+      let approveSign;
+      return deployMarket.estimateGas({from: owner})
+          .then((gas) => deployMarket.send({from: owner, gas}))
+          .then((market) => {
+            market1 = market;
+            return newController.addMarket(market._address);
+          })
+          .then(() => market1.methods.setController(newController.address))
+          .then(() => newController.setMarketPrice(market1._address, 10))
+          .then(() => token1.methods.allocateTo(from, 1000000).send({from}))
+          .then(() => {
+            approveSign = token1.methods.approve(market1._address, 1000000);
+            return approveSign.estimateGas({from});
+          })
+          .then((gas) => approveSign.send({from, gas}))
+          .then(() => {
+            let supplySign;
+            const estimateGasPromises = [];
+            for (let i = 0; i < 25; i++) {
+              const randomInt = Math.floor(Math.random() * (41601 - 10)) + 10;
+              supplySign = market1.methods.supply(randomInt);
+              supplySignArr.push(supplySign);
+              estimateGasPromises.push(supplySign.estimateGas({from}));
+            }
+            return Promise.all(estimateGasPromises);
+          })
+          .then((estimatedGas) => Promise.all(supplySignArr
+              .map((supplySign, idx) => supplySign
+                  .send({from, gas: estimatedGas[idx]}))))
+          .then(() => newController.getOverallBalance(from, 'day'))
+          .then((overallBalance) => {
+            expect(overallBalance.length).to.eq(12);
+            overallBalance.forEach(([timestamp, balance]) => {
+              expect(typeof timestamp).to.eq('object');
+              expect(typeof balance).to.eq('number')
+            })
+          })
     });
   });
 });
