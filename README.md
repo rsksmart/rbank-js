@@ -17,6 +17,8 @@ Importing the library and creating an instance.
 ```javascript
 import Rbank from '@rsksmart/rbank';
 const rbank = new Rbank();
+const controllerAddress = '0xda081f6f794bddfb033492d4b0aeb5e7e3e3ce98'
+rbank.controller = controllerAddress;
 ```
 
 By default, as a shortcut, the core package lets you to do some quick operations as getting
@@ -84,7 +86,7 @@ rbank.controller.eventualLiquidationFactor
   .catch(console.error);
 ```
 
-The contoller also let to set values for both, the collateral and liquidation factors.
+The controller also let to set values for both, the collateral and liquidation factors.
 ```javascript
 const collateralFactor = 15;
 rbank.controller.setCollateralFactor(collateralFactor)
@@ -100,12 +102,25 @@ rbank.controller.setLiquidationFactor(liquidationFactor)
 Other operations related to the controller are (all the operations that involve on-chain reading and
 writing return promises):
 
+* `eventualDeployBlock: Promise<number>`
+* `eventualCollateralFactor: Promise<number>`
+* `eventualLiquidationFactor: Promise<number>`
 * `eventualMarketListSize: Promise<number>`
+* `eventualOwner: Promise<string>`
+* `eventualMantissa: Promise<number>`
+* `getOverallBalance: Promise<[[object, number]]>`
+* `setDefaultBlock(blockNumber): void`
+* `setCollateralFactor(collateralFactor): Promise<TXResult>`
+* `setLiquidationFactor(liquidationFactor): Promise<TXResult>`
+* `addMarket(marketAddress): Promise<TXResult>`
 * `setMarketPrice(marketAddress, marketPrice): Promise<TXResult>`
 * `eventualMarketPrice(marketAddress): Promise<number>`
 * `getAccountValues(account): Promise<AccountValues>`
 * `getAccountLiquidity(account): Promise<number>`
+* `getAccountHealth(account): Promise<number>`
 * `getEventualMarketAddress(marketIdx): Promise<string>`
+* `getEventualMarketAddressByToken(tokenAddress): Promise<string | Error>`
+* `eventualIsOwner(account): Promise<boolean>`
 
 The source controller file is fully documented and you can check the signature of each method.
 
@@ -122,7 +137,14 @@ you can register it into the controller.
 ```javascript
 const tokenAddress = '0xe78A0F7E598Cc8b0Bb87894B0F60dD2a88d6a8Ab';
 const baseBorrowRate = 15;
-rbank.Market.create(tokenAddress, baseBorrowRate)
+const blocksPerYear = 1e6;
+const utilizationRateFraction = 20
+rbank.Market.create(
+    tokenAddress,
+    baseBorrowRate,
+    blocksPerYear,
+    utilizationRateFraction,
+    )
   .then((marketAddress) => [
     rbank.controller.addMarket(marketAddress),
     new rbank.Market(marketAddress),
@@ -142,43 +164,51 @@ Other operations related to the market are (all the operations that involve on-c
 writing return promises):
 
 * `address: string`
+* `eventualDeployBlock: Promise<number>`
 * `eventualController: Promise<string>`
+* `eventualBlocksPerYear: Promise<number>`
+* `eventualBorrowRate: Promise<number>`
 * `eventualBaseBorrowRate: Promise<number>`
-* `eventualBalance: Promise<number>`
+* `eventualFactor: Promise<number>`
+* `eventualUpdatedTotalSupply: Promise<number>`
+* `eventualUpdatedTotalBorrows: Promise<number>`
+* `eventualCash: Promise<number>`
+* `eventualToken: Promise<Token>`
+* `events: EventEmmiter`
+* `getPastEvents(eventName, fromBlock, filter): Promise<[Event]>`
+* `getOverallBalance(period): Promise<[[object, number, number]]>`
+* `setDefaultBlock(blockNumber): void`
 * `setControllerAddress(controllerAddress): Promise<TXResult>`
 * `supply(amount, from = ''): Promise<TXResult>`
 * `borrow(amount, from = ''): Promise<TXResult>`
+* `redeem(amount, from = ''): Promise<TXResult>`
+* `payborrow(amount, from = ''): Promise<TXResult>`
 * `supplyOf(from = ''): Promise<number>`
+* `updatedSupplyOf(from = ''): Promise<number>`
+* `borrowBy(from = ''): Promise<number>`
+* `updatedBorrowBy(from = ''): Promise<number>`
+* `eventualAccountEarnings(from = ''): Promise<number>`
+* `liquidateBorrow(borrower, amount, collateralMarket, from = ''): Promise<TXResult>`
 
-## Development
+
+
+## Testing
 Just clone this repo and install npm dependencies:
 
 ```bash
 $ git clone git@github.com:rsksmart/rbank-js.git
 $ cd rbank-js
-$ npm i
+$ git submodule init
+$ git submodule update
 ```
 
-### Usage
-On development stages, this package is not available on npm. To make it available for other projects
-you can link them by:
-- Go to the project directory.
-- Build it, test it and finally exectue `npm link` to make it globally available in the local host.
-- Go to the other project where you need to use this library and execute `npm link @rsksmart/rbank.js`.
-_Note_: the package is not going to be linked as a dependency in the target project `package.json` 
-file, but it's going to be available to be used.
-
-Any change on this library will be automatically reflected on all the projects that have linked the
-library into them.
-
-### Testing
 In order to run the test in this project you should have a console running with `ganache-cli`
 
-#### `ganache-cli` installation
-You might want to have `ganache-cli` installed globally.
+#### Prerequisites
+You might want to have `ganache-cli`, `lerna` and `truffle` installed globally.
 
 ```bash
-$ npm i -g ganache-cli
+$ npm i -g ganache-cli truffle lerna
 ```
 
 #### Preparation prior to the testing
