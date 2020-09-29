@@ -73,7 +73,7 @@ export default class Market {
 
   /**
    * Returns an eventual blocks per year of this market.
-   * @return {Promise<string>} eventual blocks per year.
+   * @return {Promise<number>} eventual blocks per year.
    */
   get eventualBlocksPerYear() {
     return new Promise((resolve, reject) => {
