@@ -233,7 +233,7 @@ These commands, install npm dependencies, compile smart contracts and copy the r
 files into the respective packages, link all the internal packages together.
 
 #### Running the tests
-You should be located at this project root and run the tests.
+You should be located at this project root and run the tests. Be sure to have `ganache-cli` running.
 
 ```bash
 $ npm test
