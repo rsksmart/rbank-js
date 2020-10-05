@@ -1,6 +1,14 @@
 import {
-  BN, send, web3, web3WS,
+  BN,
+  PERIOD_DAY,
+  PERIOD_MONTH,
+  PERIOD_WEEK,
+  PERIOD_YEAR,
+  send,
+  web3,
+  web3WS,
 } from '@rsksmart/rbank-utils';
+import _ from 'lodash';
 import MarketContract from './Market.json';
 import Token from './token';
 
@@ -37,6 +45,20 @@ export default class Market {
   }
 
   /**
+   * Market deploy block.
+   * @return {Number} this controller deploy block.
+   */
+  get eventualDeployBlock() {
+    return new Promise((resolve, reject) => {
+      this.instance.methods.deployBlock()
+        .call()
+        .then((block) => Number(block))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
+  /**
    * Returns an eventual controller address.
    * @return {Promise<string>} eventual registered controller address.
    */
@@ -51,7 +73,7 @@ export default class Market {
 
   /**
    * Returns an eventual blocks per year of this market.
-   * @return {Promise<string>} eventual blocks per year.
+   * @return {Promise<number>} eventual blocks per year.
    */
   get eventualBlocksPerYear() {
     return new Promise((resolve, reject) => {
@@ -211,6 +233,94 @@ export default class Market {
         .then(resolve)
         .catch(reject);
     });
+  }
+
+  /**
+   * Returns an array with the blocks series according to the period
+   * @param period string the period over the calculation is based
+   * @return {Promise<[number]>} a promise to a result array block numbers
+   */
+  getPastBlockNumbers(period) {
+    const pastBlockNumbers = [];
+    const blocksPerYear = 1000000;
+    let labelsPerPeriod;
+    let blocksPerPeriod;
+    switch (period) {
+      case PERIOD_DAY:
+        labelsPerPeriod = 12;
+        blocksPerPeriod = Math.floor(blocksPerYear / (365.25 * 12));
+        break;
+      case PERIOD_WEEK:
+        labelsPerPeriod = 7;
+        blocksPerPeriod = Math.floor(blocksPerYear / 365.25);
+        break;
+      case PERIOD_MONTH:
+        labelsPerPeriod = 15;
+        blocksPerPeriod = Math.floor((blocksPerYear * 2) / (365.25));
+        break;
+      case PERIOD_YEAR:
+        labelsPerPeriod = 12;
+        blocksPerPeriod = Math.floor((blocksPerYear) / (12));
+        break;
+      default:
+        labelsPerPeriod = 7;
+        blocksPerPeriod = Math.floor(blocksPerYear / 365.25);
+    }
+    return new Promise((resolve, reject) => {
+      Promise.all([this.eventualDeployBlock, web3.eth.getBlockNumber()])
+        .then(([deployBlock, currentBlockNumber]) => {
+          _.range(labelsPerPeriod).forEach((i) => {
+            const pastBlockNumber = currentBlockNumber - (blocksPerPeriod * i) >= deployBlock
+              ? currentBlockNumber - (blocksPerPeriod * i) : deployBlock;
+            pastBlockNumbers.push(pastBlockNumber);
+          });
+          resolve(pastBlockNumbers);
+        })
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Returns an two dimensional array with the market balance through a given period
+   * @param {string} period over the balances ('day', 'week', 'month', 'year')
+   * @return {Promise<[[object, number, number]]>} an array of arrays with the timestamp,
+   * the total supply value and total borrow value of this market.
+   */
+  getOverallBalance(period = PERIOD_WEEK) {
+    return new Promise((resolve, reject) => {
+      this.getPastBlockNumbers(period)
+        .then((pastBlockNumbers) => {
+          const pastMarketBalancesPromises = Promise.all(pastBlockNumbers
+            .map((blockNumber) => {
+              const market = new Market(this.address);
+              market.setDefaultBlock(blockNumber);
+              return Promise.all([
+                market.eventualUpdatedTotalSupply,
+                market.eventualUpdatedTotalBorrows,
+              ]);
+            }));
+          const pastBlocksPromise = Promise.all(pastBlockNumbers
+            .map((blockNumber) => web3.eth.getBlock(blockNumber)));
+          return Promise.all([pastMarketBalancesPromises, pastBlocksPromise]);
+        })
+        .then(([pastMarketBalances, pastBlocks]) => {
+          const overallBalances = pastMarketBalances
+            .map(([updatedTotalSupply, updatedTotalBorrow], idx) => {
+              const time = new Date(pastBlocks[idx].timestamp * 1000);
+              return [time, updatedTotalSupply, updatedTotalBorrow];
+            });
+          resolve(overallBalances);
+        })
+        .catch(reject);
+    });
+  }
+
+  /**
+   * Modifies the instance default block
+   * @param blockNumber Number new default block
+   */
+  setDefaultBlock(blockNumber) {
+    this.instance.defaultBlock = blockNumber;
   }
 
   /**
