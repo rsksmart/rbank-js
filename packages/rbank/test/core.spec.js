@@ -4,8 +4,8 @@ import Web3 from 'web3';
 import Rbank from '../src';
 import Controller from '@rsksmart/rbank-controller';
 import Market from '@rsksmart/rbank-market';
-import { web3 } from '@rsksmart/rbank-utils';
 import TokenContract from '../../rbank-market/src/FaucetToken.json';
+import * as utils from "@rsksmart/rbank-utils/src";
 
 const w3 = new Web3(Web3.givenProvider || 'ws://localhost:8545');
 
@@ -34,11 +34,16 @@ describe('Core', () => {
         .to
         .match(/Token/);
     });
-    it('should have access to the web3 instance', () => {
-      return expect(rbank.web3)
-        .to
-        .eq(web3);
-    });
+    it('should set the default web3 instance over web sockets', () => {
+      const config = {
+        chainId: 1337,
+        provider: 'ws://127.0.0.1:8546',
+      };
+      const newRbank = new Rbank(config);
+      return expect(web3WS.currentProvider.url)
+          .to
+          .eq('ws://127.0.0.1:8546');
+    })
   });
   context('Operational', () => {
     let controller;

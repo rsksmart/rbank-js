@@ -2,7 +2,7 @@
 import _ from 'lodash';
 import Controller from '@rsksmart/rbank-controller';
 import Market from '@rsksmart/rbank-market';
-import { web3 } from '@rsksmart/rbank-utils';
+import * as utils from '@rsksmart/rbank-utils';
 
 /**
  * Rbank core
@@ -11,11 +11,11 @@ export default class Rbank {
   /**
    * Makes available a controller and market handlers.
    */
-  constructor() {
+  constructor(config = {}) {
     this.Controller = Controller;
     this.Market = Market;
     this.Token = Market.Token;
-    this.web3 = web3;
+    this.ws = utils.getWSProvider(config);
     this.internalController = null;
   }
 

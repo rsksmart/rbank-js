@@ -1,29 +1,11 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import Web3 from 'web3';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import BigNumber from 'bignumber.js';
 
 const localWS = 'ws://127.0.0.1:8545';
 const rskMainNetWS = '';
-const rskTestNetWS = 'wss://public-node.testnet.rsk.co:4445/websocket';
+const rskTestNetWS = 'ws://52.14.108.170:4445/websocket';
 const rskRegTestWS = '';
-
-const getWSProvider = () => {
-  try {
-    switch (Web3.utils.toDecimal(Web3.givenProvider.chainId)) {
-      case 30:
-        return rskMainNetWS;
-      case 31:
-        return rskTestNetWS;
-      case 33:
-        return rskRegTestWS;
-      default:
-        return localWS;
-    }
-  } catch (e) {
-    return localWS;
-  }
-};
 
 /**
  * A blockchain transaction response.
@@ -37,12 +19,41 @@ const getWSProvider = () => {
  */
 export const web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:8545');
 
+let currentProvider = 'ws://127.0.0.1:8545';
+// eslint-disable-next-line consistent-return
+export const getWSProvider = async (config) => {
+  try {
+    const id = await web3.eth.getChainId();
+    // eslint-disable-next-line no-console
+    console.log(`id: ${id}`);
+    // eslint-disable-next-line no-console
+    console.log(`Config: ${JSON.stringify(config)}`);
+    switch (id) {
+      case 30:
+        currentProvider = rskMainNetWS;
+        break;
+      case 31:
+        currentProvider = rskTestNetWS;
+        break;
+      case 33:
+        currentProvider = rskRegTestWS;
+        break;
+      case 1337:
+        currentProvider = rskRegTestWS;
+        break;
+      default:
+        currentProvider = localWS;
+    }
+  } catch (e) {
+    return localWS;
+  }
+};
 /**
  * Returns a globally available we3 websocket instance connected to the correspondent http given
  * provider or a ganache local network by default.
  * @type {Web3}
  */
-export const web3WS = new Web3(getWSProvider());
+export const web3WS = new Web3(currentProvider);
 
 /**
  * Returns a globally available Big Number library
