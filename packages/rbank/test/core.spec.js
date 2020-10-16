@@ -1,13 +1,10 @@
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import Web3 from 'web3';
 import Rbank from '../src';
 import Controller from '@rsksmart/rbank-controller';
 import Market from '@rsksmart/rbank-market';
 import { web3 } from '@rsksmart/rbank-utils';
 import TokenContract from '../../rbank-market/src/FaucetToken.json';
-
-const w3 = new Web3(Web3.givenProvider || 'ws://localhost:8545');
 
 chai.use(chaiAsPromised);
 
@@ -49,9 +46,9 @@ describe('Core', () => {
       market4,
       market5;
     beforeEach(async () => {
-      const [owner] = await w3.eth.getAccounts();
+      const [owner] = await web3.eth.getAccounts();
 
-      const token = new w3.eth.Contract(TokenContract.abi);
+      const token = new web3.eth.Contract(TokenContract.abi);
 
       const deployToken1 = token.deploy({
         data: TokenContract.bytecode,
@@ -126,6 +123,12 @@ describe('Core', () => {
         .to
         .eq(controller.address);
     });
+    it('should create a controller instance with custom RBank network config', () => {
+      const newRbank = new Rbank( { 1337: 'ws://127.0.0.1:8546' })
+      newRbank.controller = controller.address;
+      return newRbank.controller.eventualWeb3WS
+        .then((web3WS) => expect(web3WS.currentProvider.url).to.eq('ws://127.0.0.1:8546'));
+    })
     it('should create as many instances of markets as markets registered in the controller', () => {
       return rbank.eventualMarkets
         .then(markets => {
