@@ -20,6 +20,10 @@ export default class Rbank {
     this.internalController = null;
   }
 
+  /**
+   * Returns the provided websockets configuration.
+   * @return {Object} config
+   */
   get config() {
     return this.options;
   }
@@ -50,7 +54,7 @@ export default class Rbank {
         .map((marketIdx) => this.internalController.getEventualMarketAddress(marketIdx)))
       .then((eventualMarketAddresses) => Promise.all(eventualMarketAddresses))
       .then((marketAddresses) => marketAddresses
-        .map((marketAddress) => new Market(marketAddress)));
+        .map((marketAddress) => new Market(marketAddress, this.config)));
   }
 
   /**

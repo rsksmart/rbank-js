@@ -735,6 +735,33 @@ describe('Market handler', () => {
             .match(/0x[a-f0-9]{64}/);
         });
     });
+    it('should get the liquidateBorrow event when somebody liquidate a debt on this market', () => {
+      market1.eventualEvents
+          .then((events) => events.liquidateBorrow()
+              .on('data', ({ returnValues: { borrower, amount } }) => {
+                expect(borrower)
+                    .to
+                    .eq(bob);
+                expect(Number(amount))
+                    .to
+                    .eq(100);
+              }));
+      return market1.supply(500, alice)
+          .then(() => market2.supply(300, bob))
+          .then(() => market1.borrow(150, bob))
+          .then(() => controller.methods.setPrice(market2.address, 4))
+          .then((setPriceSign) => Promise.all([setPriceSign, setPriceSign.estimateGas({ from: owner })]))
+          .then(([setPriceSign, gas]) => setPriceSign.send({
+            from: owner,
+            gas,
+          }))
+          .then(() => market1.liquidateBorrow(bob, 100, market2.address, alice))
+          .then((result) => {
+            expect(result.transactionHash)
+                .to
+                .match(/0x[a-f0-9]{64}/);
+          });
+    });
     it('should get the past borrow event for market1 if anyone did a borrow', () => {
       return market1.supply(250, alice)
         .then(() => market2.supply(250, bob))

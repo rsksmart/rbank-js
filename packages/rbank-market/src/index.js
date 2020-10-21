@@ -218,6 +218,8 @@ export default class Market {
                 .events.Redeem({ filter, fromBlock }, cb),
               payBorrow: (filter = {}, fromBlock = 'latest', cb) => ws
                 .events.PayBorrow({ filter, fromBlock }, cb),
+              liquidateBorrow: (filter = {}, fromBlock = 'latest', cb) => ws
+                .events.LiquidateBorrow({ filter, fromBlock }, cb),
               allEvents: (cb) => ws.events
                 .allEvents({ fromBlock: 'latest' }, cb),
             },
