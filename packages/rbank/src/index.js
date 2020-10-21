@@ -11,12 +11,21 @@ export default class Rbank {
   /**
    * Makes available a controller and market handlers.
    */
-  constructor() {
+  constructor(config = { 1337: 'ws://127.0.0.1:8545' }) {
     this.Controller = Controller;
     this.Market = Market;
     this.Token = Market.Token;
+    this.options = config;
     this.web3 = web3;
     this.internalController = null;
+  }
+
+  /**
+   * Returns the provided websockets configuration.
+   * @return {Object} config
+   */
+  get config() {
+    return this.options;
   }
 
   /**
@@ -30,7 +39,7 @@ export default class Rbank {
    * @param {string} controllerAddress on chain deployed controller address.
    */
   set controller(controllerAddress) {
-    this.internalController = new this.Controller(controllerAddress);
+    this.internalController = new this.Controller(controllerAddress, this.config);
     this.markets();
   }
 
@@ -45,7 +54,7 @@ export default class Rbank {
         .map((marketIdx) => this.internalController.getEventualMarketAddress(marketIdx)))
       .then((eventualMarketAddresses) => Promise.all(eventualMarketAddresses))
       .then((marketAddresses) => marketAddresses
-        .map((marketAddress) => new Market(marketAddress)));
+        .map((marketAddress) => new Market(marketAddress, this.config)));
   }
 
   /**

@@ -5,6 +5,8 @@ import {
   PERIOD_WEEK,
   PERIOD_MONTH,
   PERIOD_YEAR,
+  getEventualChainId,
+  Web3Utils,
 } from '@rsksmart/rbank-utils';
 import _ from 'lodash';
 import ControllerContract from './Controller.json';
@@ -21,12 +23,16 @@ export default class Controller {
   /**
    * Controller handler constructor.
    * @param {string} address On chain `Controller` deployed address.
+   * @param {object} config of the network { chainId: WEB_SOCKETS_PROVIDER }
    * @return {Error}
    */
-  constructor(address = '') {
+  constructor(address = '', config = { 1337: 'ws://127.0.0.1:8545' }) {
     this.instanceAddress = address.toLowerCase();
     if (!this.address.match(/0x[a-f0-9]{40}/)) return new Error('Missing address');
     this.instance = new web3.eth.Contract(ControllerContract.abi, address);
+    this.eventualWeb3WS = getEventualChainId()
+      .then((chainId) => new Web3Utils(config[chainId]))
+      .catch(() => new Error('Something went wrong with the web3 instance over web sockets on Controller'));
   }
 
   /**

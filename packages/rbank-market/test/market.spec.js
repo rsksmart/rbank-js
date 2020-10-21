@@ -650,7 +650,8 @@ describe('Market handler', () => {
 
     });
     it('should get the supply event for market1 when anyone is supplying', () => {
-      market1.events.supply()
+      market1.eventualEvents
+        .then((events) => events.supply()
         .on('data', ({ returnValues: { user, amount } }) => {
           expect(user)
             .to
@@ -658,7 +659,7 @@ describe('Market handler', () => {
           expect(Number(amount))
             .to
             .eq(250);
-        });
+        }));
       const signature = token1.methods.approve(market1.address, 250);
       return signature.estimateGas({ from: alice })
         .then((gas) => signature.send({
@@ -673,7 +674,8 @@ describe('Market handler', () => {
         });
     });
     it('should get the borrow event for market1 when anyone is borrowing', () => {
-      market1.events.borrow()
+      market1.eventualEvents
+        .then((events) => events.borrow()
         .on('data', ({ returnValues: { user, amount } }) => {
           expect(user)
             .to
@@ -681,7 +683,7 @@ describe('Market handler', () => {
           expect(Number(amount))
             .to
             .eq(100);
-        });
+        }));
       return market1.supply(250, alice)
         .then(() => market2.supply(250, bob))
         .then(() => market1.borrow(100, bob))
@@ -692,7 +694,8 @@ describe('Market handler', () => {
         });
     });
     it('should get the pay borrow event for market1 when anyone pays a borrow', () => {
-      market1.events.payBorrow()
+      market1.eventualEvents
+        .then((events) => events.payBorrow()
         .on('data', ({ returnValues: { user, amount } }) => {
           expect(user)
             .to
@@ -700,7 +703,7 @@ describe('Market handler', () => {
           expect(Number(amount))
             .to
             .eq(50);
-        });
+        }));
       return market1.supply(250, alice)
         .then(() => market2.supply(250, bob))
         .then(() => market1.borrow(100, bob))
@@ -712,7 +715,8 @@ describe('Market handler', () => {
         });
     });
     it('should get the redeem event for market1 when anyone redeem tokens', () => {
-      market1.events.redeem()
+      market1.eventualEvents
+        .then((events) => events.redeem()
         .on('data', ({ returnValues: { user, amount } }) => {
           expect(user)
             .to
@@ -720,7 +724,7 @@ describe('Market handler', () => {
           expect(Number(amount))
             .to
             .eq(50);
-        });
+        }));
       return market1.supply(250, alice)
         .then(() => market2.supply(250, bob))
         .then(() => market1.borrow(100, bob))
@@ -730,6 +734,33 @@ describe('Market handler', () => {
             .to
             .match(/0x[a-f0-9]{64}/);
         });
+    });
+    it('should get the liquidateBorrow event when somebody liquidate a debt on this market', () => {
+      market1.eventualEvents
+          .then((events) => events.liquidateBorrow()
+              .on('data', ({ returnValues: { borrower, amount } }) => {
+                expect(borrower)
+                    .to
+                    .eq(bob);
+                expect(Number(amount))
+                    .to
+                    .eq(100);
+              }));
+      return market1.supply(500, alice)
+          .then(() => market2.supply(300, bob))
+          .then(() => market1.borrow(150, bob))
+          .then(() => controller.methods.setPrice(market2.address, 4))
+          .then((setPriceSign) => Promise.all([setPriceSign, setPriceSign.estimateGas({ from: owner })]))
+          .then(([setPriceSign, gas]) => setPriceSign.send({
+            from: owner,
+            gas,
+          }))
+          .then(() => market1.liquidateBorrow(bob, 100, market2.address, alice))
+          .then((result) => {
+            expect(result.transactionHash)
+                .to
+                .match(/0x[a-f0-9]{64}/);
+          });
     });
     it('should get the past borrow event for market1 if anyone did a borrow', () => {
       return market1.supply(250, alice)
@@ -755,7 +786,8 @@ describe('Market handler', () => {
             .eq(charlie)));
     });
     it('Should return all past events of a given market', () => {
-      market1.events.allEvents()
+      market1.eventualEvents
+        .then((events) => events.allEvents()
         .on('data', ({ returnValues: { user, amount } }) => {
           if (user === bob) {
             expect(Number(amount))
@@ -772,7 +804,7 @@ describe('Market handler', () => {
               .to
               .eq(250);
           }
-        });
+        }));
       return market1.supply(250, alice)
         .then(() => market2.supply(250, bob))
         .then(() => market2.supply(250, charlie))

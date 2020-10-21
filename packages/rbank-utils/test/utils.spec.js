@@ -23,11 +23,6 @@ describe('Utils module', () => {
       .to
       .eq('http://127.0.0.1:8545');
   });
-  it('should have a web3 websocket instance tied to localhost', () => {
-    return expect(utils.web3WS.currentProvider.url)
-      .to
-      .eq('ws://127.0.0.1:8545');
-  });
   it('should properly send transactions generically', () => {
     return utils.web3.eth.getAccounts()
       .then(([from]) => ([from, deploy.estimateGas({ from })]))
