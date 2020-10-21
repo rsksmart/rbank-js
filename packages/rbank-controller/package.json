@@ -1,6 +1,6 @@
 {
   "name": "@rsksmart/rbank-controller",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Controller handler for DeFi solution",
   "keywords": [
     "DeFi",
@@ -28,7 +28,7 @@
     "url": "https://github.com/rsksmart/rbank-js/issues"
   },
   "dependencies": {
-    "@rsksmart/rbank-utils": "1.0.0",
+    "@rsksmart/rbank-utils": "1.0.1",
     "lodash": "^4.17.20"
   }
 }
