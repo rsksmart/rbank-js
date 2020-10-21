@@ -1,12 +1,12 @@
 import {
-  BN,
+  BN, getEventualChainId,
   PERIOD_DAY,
   PERIOD_MONTH,
   PERIOD_WEEK,
   PERIOD_YEAR,
   send,
   web3,
-  web3WS,
+  Web3Utils,
 } from '@rsksmart/rbank-utils';
 import _ from 'lodash';
 import MarketContract from './Market.json';
@@ -24,13 +24,16 @@ export default class Market {
   /**
    * Market handler constructor
    * @param {string} address On chain `Market` deployed address.
+   * @param {object} config of the network { chainId: WEB_SOCKETS_PROVIDER }
    * @return {Error}
    */
-  constructor(address = '') {
+  constructor(address = '', config = { 1337: 'ws://127.0.0.1:8545' }) {
     this.instanceAddress = address.toLowerCase();
     if (!this.address.match(/0x[a-f0-9]{40}/)) return new Error('Missing address');
     this.instance = new web3.eth.Contract(MarketContract.abi, address);
-    this.ws = new web3WS.eth.Contract(MarketContract.abi, address);
+    this.eventualWeb3WS = getEventualChainId()
+      .then((chainId) => new Web3Utils(config[chainId]))
+      .catch(() => new Error('Something went wrong with the web3 instance over web sockets on Market'));
     this.token = this.instance.methods.token()
       .call()
       .then((tokenAddress) => new Token(tokenAddress));
@@ -198,21 +201,32 @@ export default class Market {
 
   /**
    * Generates a market subscription to a event.
-   * @return {EventEmiter}
+   * @return {Promise<{EventEmitter}>}
    */
-  get events() {
-    return {
-      supply: (filter = {}, fromBlock = 'latest', cb) => this.ws
-        .events.Supply({ filter, fromBlock }, cb),
-      borrow: (filter = {}, fromBlock = 'latest', cb) => this.ws
-        .events.Borrow({ filter, fromBlock }, cb),
-      redeem: (filter = {}, fromBlock = 'latest', cb) => this.ws
-        .events.Redeem({ filter, fromBlock }, cb),
-      payBorrow: (filter = {}, fromBlock = 'latest', cb) => this.ws
-        .events.PayBorrow({ filter, fromBlock }, cb),
-      allEvents: (cb) => this.ws.events
-        .allEvents({ fromBlock: 'latest' }, cb),
-    };
+  get eventualEvents() {
+    return new Promise((resolve, reject) => {
+      this.eventualWeb3WS
+        .then((web3WS) => {
+          const ws = new web3WS.eth.Contract(MarketContract.abi, this.address);
+          resolve(
+            {
+              supply: (filter = {}, fromBlock = 'latest', cb) => ws
+                .events.Supply({ filter, fromBlock }, cb),
+              borrow: (filter = {}, fromBlock = 'latest', cb) => ws
+                .events.Borrow({ filter, fromBlock }, cb),
+              redeem: (filter = {}, fromBlock = 'latest', cb) => ws
+                .events.Redeem({ filter, fromBlock }, cb),
+              payBorrow: (filter = {}, fromBlock = 'latest', cb) => ws
+                .events.PayBorrow({ filter, fromBlock }, cb),
+              liquidateBorrow: (filter = {}, fromBlock = 'latest', cb) => ws
+                .events.LiquidateBorrow({ filter, fromBlock }, cb),
+              allEvents: (cb) => ws.events
+                .allEvents({ fromBlock: 'latest' }, cb),
+            },
+          );
+        })
+        .catch(reject);
+    });
   }
 
   /**

@@ -3,19 +3,6 @@ import Web3 from 'web3';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import BigNumber from 'bignumber.js';
 
-const localWS = 'ws://127.0.0.1:8545';
-
-const getWSProvider = () => {
-  try {
-    switch (Web3.givenProvider.chainId) {
-      default:
-        return localWS;
-    }
-  } catch (e) {
-    return localWS;
-  }
-};
-
 /**
  * A blockchain transaction response.
  * @typedef {Object} TXResult
@@ -29,11 +16,16 @@ const getWSProvider = () => {
 export const web3 = new Web3(Web3.givenProvider || 'http://127.0.0.1:8545');
 
 /**
- * Returns a globally available we3 websocket instance connected to the correspondent http given
- * provider or a ganache local network by default.
+ * Returns a globally available Web3 class.
  * @type {Web3}
  */
-export const web3WS = new Web3(getWSProvider());
+export const Web3Utils = Web3;
+
+/**
+ * Returns the chain Id of the network
+ * @type {function(): Promise<number>}
+ */
+export const getEventualChainId = () => web3.eth.getChainId();
 
 /**
  * Returns a globally available Big Number library
