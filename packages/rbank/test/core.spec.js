@@ -124,10 +124,18 @@ describe('Core', () => {
         .eq(controller.address);
     });
     it('should create a controller instance with custom RBank network config', () => {
-      const newRbank = new Rbank( { 1337: 'ws://127.0.0.1:8546' })
+      const config = {
+        1337: {
+          httpProvider: 'http://127.0.0.1:8548',
+          wsProvider: 'ws://127.0.0.1:8546',
+        },
+      };
+      const newRbank = new Rbank(config);
       newRbank.controller = controller.address;
       return newRbank.controller.eventualWeb3WS
-        .then((web3WS) => expect(web3WS.currentProvider.url).to.eq('ws://127.0.0.1:8546'));
+        .then((web3WS) => expect(web3WS.currentProvider.url).to.eq('ws://127.0.0.1:8546'))
+        .then(() => newRbank.controller.eventualWeb3Http)
+        .then((web3Http) => expect(web3Http.currentProvider.host).to.eq('http://127.0.0.1:8548'));
     })
     it('should create as many instances of markets as markets registered in the controller', () => {
       return rbank.eventualMarkets

@@ -27,13 +27,23 @@ export default class Market {
    * @param {object} config of the network { chainId: WEB_SOCKETS_PROVIDER }
    * @return {Error}
    */
-  constructor(address = '', config = { 1337: 'ws://127.0.0.1:8545' }) {
+  constructor(address = '', config = {
+    1337: {
+      httpProvider: 'http://127.0.0.1:8545',
+      wsProvider: 'ws://127.0.0.1:8545',
+    },
+  }) {
     this.instanceAddress = address.toLowerCase();
     if (!this.address.match(/0x[a-f0-9]{40}/)) return new Error('Missing address');
     this.instance = new web3.eth.Contract(MarketContract.abi, address);
     this.eventualWeb3WS = getEventualChainId()
-      .then((chainId) => new Web3Utils(config[chainId]))
+      .then((chainId) => new Web3Utils(new Web3Utils
+        .providers.WebsocketProvider(config[chainId].wsProvider)))
       .catch(() => new Error('Something went wrong with the web3 instance over web sockets on Market'));
+    this.eventualWeb3Http = getEventualChainId()
+      .then((chainId) => new Web3Utils(new Web3Utils
+        .providers.HttpProvider(config[chainId].httpProvider)))
+      .catch(() => new Error('Something went wrong with the web3 instance over http on Market'));
     this.token = this.instance.methods.token()
       .call()
       .then((tokenAddress) => new Token(tokenAddress));
@@ -238,12 +248,15 @@ export default class Market {
    */
   getPastEvents(eventName, fromBlock, filter = {}) {
     return new Promise((resolve, reject) => {
-      this.instance.getPastEvents(eventName,
-        {
-          filter,
-          fromBlock,
-          toBlock: 'latest',
-        })
+      this.eventualWeb3Http
+        .then((web3Http) => new web3Http
+          .eth.Contract(MarketContract.abi, this.address))
+        .then((marketInstance) => marketInstance.getPastEvents(eventName,
+          {
+            filter,
+            fromBlock,
+            toBlock: 'latest',
+          }))
         .then(resolve)
         .catch(reject);
     });

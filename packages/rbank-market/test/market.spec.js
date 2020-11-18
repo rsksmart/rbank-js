@@ -199,6 +199,19 @@ describe('Market handler', () => {
             .eq(controller._address);
         });
     });
+    it('should create a market with custom RBank network config', () => {
+      const config = {
+        1337: {
+          httpProvider: 'http://127.0.0.1:8548',
+          wsProvider: 'ws://127.0.0.1:8546',
+        },
+      };
+      const newMarket = new Market(market1Address, config);
+      return newMarket.eventualWeb3WS
+        .then((web3WS) => expect(web3WS.currentProvider.url).to.eq('ws://127.0.0.1:8546'))
+        .then(() => newMarket.eventualWeb3Http)
+        .then((web3Http) => expect(web3Http.currentProvider.host).to.eq('http://127.0.0.1:8548'));
+    })
   });
   context('Operational', () => {
     let owner,
