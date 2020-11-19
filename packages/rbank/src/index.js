@@ -11,21 +11,18 @@ export default class Rbank {
   /**
    * Makes available a controller and market handlers.
    */
-  constructor(config = { 1337: 'ws://127.0.0.1:8545' }) {
+  constructor(config = {
+    1337: {
+      httpProvider: 'http://127.0.0.1:8545',
+      wsProvider: 'ws://127.0.0.1:8545',
+    },
+  }) {
     this.Controller = Controller;
     this.Market = Market;
     this.Token = Market.Token;
-    this.options = config;
+    this.config = config;
     this.web3 = web3;
     this.internalController = null;
-  }
-
-  /**
-   * Returns the provided websockets configuration.
-   * @return {Object} config
-   */
-  get config() {
-    return this.options;
   }
 
   /**

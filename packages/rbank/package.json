@@ -1,6 +1,6 @@
 {
   "name": "@rsksmart/rbank",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Rbank core",
   "keywords": [
     "Rbank"
@@ -27,9 +27,9 @@
     "url": "https://github.com/rsksmart/rbank-js/issues"
   },
   "dependencies": {
-    "@rsksmart/rbank-controller": "1.0.1",
-    "@rsksmart/rbank-market": "1.0.1",
-    "@rsksmart/rbank-utils": "1.0.1",
+    "@rsksmart/rbank-controller": "1.0.2",
+    "@rsksmart/rbank-market": "1.0.2",
+    "@rsksmart/rbank-utils": "1.0.2",
     "lodash": "^4.17.19"
   }
 }
