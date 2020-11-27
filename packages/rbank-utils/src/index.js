@@ -28,6 +28,17 @@ export const Web3Utils = Web3;
 export const getEventualChainId = () => web3.eth.getChainId();
 
 /**
+ *
+ * @param contract
+ * @param eventName
+ * @returns {Object}
+ */
+export const getEventJsonInterface = (contract, eventName) => web3.utils._.find(
+  contract.options.jsonInterface,
+  (element) => element.name === eventName && element.type === 'event',
+);
+
+/**
  * Returns a globally available Big Number library
  * @type {BigNumber}
  */

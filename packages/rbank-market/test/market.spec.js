@@ -831,5 +831,84 @@ describe('Market handler', () => {
             .match(/0x[a-f0-9]{64}/);
         });
     });
+    it('should let subscribe to supply event logs ', () => {
+      market1.subscribeEventLogs('Supply', ({ user, amount }) => {
+        console.log(`${user} - ${amount}`);
+        expect(user)
+          .to
+          .eq(alice);
+        expect(Number(amount))
+          .to
+          .eq(250);
+      })
+      const signature = token1.methods.approve(market1.address, 250);
+      return signature.estimateGas({ from: alice })
+        .then((gas) => signature.send({
+          from: alice,
+          gas,
+        }))
+        .then(() => market1.supply(250, alice))
+        .then((tx) => {
+          expect(tx.transactionHash)
+            .to
+            .match(/0x[a-f0-9]{64}/);
+        });
+    });
+    it('should let subscribe to borrow event logs ', () => {
+      market1.subscribeEventLogs('Borrow', ({ user, amount }) => {
+        expect(user)
+          .to
+          .eq(bob);
+        expect(Number(amount))
+          .to
+          .eq(100);
+      });
+      return market1.supply(250, alice)
+        .then(() => market2.supply(250, bob))
+        .then(() => market1.borrow(100, bob))
+        .then((tx) => {
+          expect(tx.transactionHash)
+            .to
+            .match(/0x[a-f0-9]{64}/);
+        });
+    });
+    it('should let subscribe to payBorrow event logs ', () => {
+      market1.subscribeEventLogs('PayBorrow', ({ user, amount }) => {
+        expect(user)
+          .to
+          .eq(bob);
+        expect(Number(amount))
+          .to
+          .eq(50);
+      });
+      return market1.supply(250, alice)
+        .then(() => market2.supply(250, bob))
+        .then(() => market1.borrow(100, bob))
+        .then(() => market1.payBorrow(50, bob))
+        .then((tx) => {
+          expect(tx.transactionHash)
+            .to
+            .match(/0x[a-f0-9]{64}/);
+        });
+    });
+    it('should let subscribe to redeem event logs ', () => {
+      market1.subscribeEventLogs('Redeem', ({ user, amount }) => {
+          expect(user)
+            .to
+            .eq(alice);
+          expect(Number(amount))
+            .to
+            .eq(50);
+        });
+      return market1.supply(250, alice)
+        .then(() => market2.supply(250, bob))
+        .then(() => market1.borrow(100, bob))
+        .then(() => market1.redeem(50, alice))
+        .then((tx) => {
+          expect(tx.transactionHash)
+            .to
+            .match(/0x[a-f0-9]{64}/);
+        });
+    });
   });
 });

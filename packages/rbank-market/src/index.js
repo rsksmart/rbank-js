@@ -1,5 +1,6 @@
 import {
   BN, getEventualChainId,
+  getEventJsonInterface,
   PERIOD_DAY,
   PERIOD_MONTH,
   PERIOD_WEEK,
@@ -235,6 +236,42 @@ export default class Market {
             },
           );
         })
+        .catch(reject);
+    });
+  }
+
+  /**
+   * subscribe to event logs of this market
+   * @param eventName the event name
+   * @param callback function called on the received log
+   * @returns {Promise<eventEmitter>}
+   */
+  subscribeEventLogs(eventName, callback) {
+    return new Promise((resolve, reject) => {
+      this.eventualWeb3WS
+        .then((web3WS) => {
+          const wsContract = new web3WS.eth.Contract(MarketContract.abi, this.address);
+          const { address } = wsContract.options;
+          const eventJsonInterface = getEventJsonInterface(wsContract, eventName);
+          return web3WS.eth.subscribe('logs',
+            {
+              address,
+              topics: [eventJsonInterface.signature],
+            },
+            (error, log) => {
+              if (error || !log) {
+                reject(error);
+              } else {
+                const logObject = web3WS.eth.abi.decodeLog(
+                  eventJsonInterface.inputs,
+                  log.data,
+                  log.topics.slice(1),
+                );
+                callback(logObject);
+              }
+            });
+        })
+        .then(resolve)
         .catch(reject);
     });
   }
